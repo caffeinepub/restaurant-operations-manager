@@ -531,6 +531,95 @@
     /* ===== DIVIDER ===== */
     .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
 
+    /* ===== RECEIPT ATTACHMENT ===== */
+    .receipt-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px 14px;
+      text-align: center;
+      background: var(--cream);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .receipt-upload-area:hover { border-color: var(--orange); background: var(--orange-pale); }
+    .receipt-upload-area .upload-icon { font-size: 2rem; margin-bottom: 6px; line-height: 1; }
+    .receipt-upload-area .upload-title { font-size: 0.9rem; font-weight: 700; color: var(--brown); margin-bottom: 4px; }
+    .receipt-upload-area .upload-hint { font-size: 0.75rem; color: var(--text-muted); }
+    .receipt-btn-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+    .receipt-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      font-size: 0.85rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border);
+      background: #fff; color: var(--brown); transition: all var(--transition);
+      min-height: 44px; -webkit-tap-highlight-color: transparent;
+    }
+    .receipt-btn:hover { background: var(--orange-pale); border-color: var(--orange); color: var(--orange); }
+    .receipt-preview-wrap {
+      display: none;
+      position: relative;
+      margin-top: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--cream-dark);
+    }
+    .receipt-preview-wrap.visible { display: block; }
+    .receipt-preview-img {
+      width: 100%; max-height: 220px; object-fit: contain;
+      display: block; background: #fff;
+    }
+    .receipt-preview-pdf {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; font-size: 0.88rem; font-weight: 600; color: var(--brown);
+    }
+    .receipt-preview-pdf .pdf-icon { font-size: 2rem; }
+    .receipt-clear-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(61,31,10,0.7); color: #fff; border: none;
+      border-radius: 50%; width: 28px; height: 28px;
+      font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .receipt-clear-btn:hover { background: var(--red); }
+    /* Receipt badge on expense item cards */
+    .receipt-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 700; color: var(--blue);
+      background: var(--blue-light); border: 1px solid #B3D9EA;
+      border-radius: 20px; padding: 2px 8px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .receipt-badge:hover { background: #c4e4f0; }
+    /* Receipt viewer modal */
+    .receipt-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82); z-index: 9990;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .receipt-modal-overlay.visible { display: flex; }
+    .receipt-modal-box {
+      background: #fff; border-radius: var(--radius);
+      max-width: 600px; width: 100%; max-height: 90vh;
+      overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: var(--shadow-lg);
+    }
+    .receipt-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+    }
+    .receipt-modal-title { font-weight: 700; color: var(--brown-dark); font-size: 0.95rem; }
+    .receipt-modal-close {
+      background: none; border: none; font-size: 1.3rem; cursor: pointer;
+      color: var(--text-muted); padding: 4px 8px; border-radius: var(--radius-sm);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .receipt-modal-close:hover { background: var(--cream-dark); }
+    .receipt-modal-body { flex: 1; overflow: auto; padding: 16px; text-align: center; }
+    .receipt-modal-body img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
+    .receipt-modal-body iframe { width: 100%; height: 60vh; border: none; }
+
     /* ===== TOTAL ROW ===== */
     .total-row td { font-weight: 700; background: var(--orange-pale); border-top: 2px solid var(--orange); }
 
@@ -877,10 +966,39 @@
           <label for="exp-notes">Notes</label>
           <textarea id="exp-notes" data-ocid="expense.notes.textarea" placeholder="Optional notes..."></textarea>
         </div>
+        <div class="form-group full">
+          <label>Receipt / Document (Optional)</label>
+          <div class="receipt-upload-area" onclick="document.getElementById('exp-file-any').click()" id="expReceiptDropzone" data-ocid="expense.dropzone">
+            <div class="upload-icon">📎</div>
+            <div class="upload-title">Attach Receipt or Document</div>
+            <div class="upload-hint">Tap to choose a file, or use the options below</div>
+          </div>
+          <div class="receipt-btn-row">
+            <button type="button" class="receipt-btn" data-ocid="expense.camera.button" onclick="document.getElementById('exp-file-camera').click()">📷 Camera</button>
+            <button type="button" class="receipt-btn" data-ocid="expense.gallery.button" onclick="document.getElementById('exp-file-gallery').click()">🖼️ Gallery</button>
+            <button type="button" class="receipt-btn" data-ocid="expense.upload_button" onclick="document.getElementById('exp-file-any').click()">📁 File</button>
+          </div>
+          <!-- Hidden file inputs -->
+          <input type="file" id="exp-file-camera" accept="image/*" capture="environment" style="display:none" onchange="handleExpenseAttachment(this)">
+          <input type="file" id="exp-file-gallery" accept="image/*" style="display:none" onchange="handleExpenseAttachment(this)">
+          <input type="file" id="exp-file-any" accept="image/*,application/pdf,.pdf" style="display:none" onchange="handleExpenseAttachment(this)">
+          <!-- Preview -->
+          <div class="receipt-preview-wrap" id="expReceiptPreview">
+            <button type="button" class="receipt-clear-btn" data-ocid="expense.receipt_clear.button" onclick="clearExpenseAttachment()" title="Remove attachment">✕</button>
+            <img class="receipt-preview-img" id="expReceiptImg" src="" alt="Receipt preview" style="display:none">
+            <div class="receipt-preview-pdf" id="expReceiptPdf" style="display:none">
+              <span class="pdf-icon">📄</span>
+              <div>
+                <div id="expReceiptPdfName" style="font-weight:700;"></div>
+                <div style="font-size:0.75rem;color:var(--text-muted);">PDF document attached</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="btn-group">
         <button type="submit" class="btn btn-primary" data-ocid="expense.submit_button">💸 Add Expense</button>
-        <button type="button" class="btn btn-secondary" onclick="resetForm('expenseForm')">Reset</button>
+        <button type="button" class="btn btn-secondary" onclick="clearFullExpenseForm()">Reset</button>
       </div>
     </form>
   </div>
@@ -1250,12 +1368,16 @@
         <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Vendor</span>
         <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">RecordedBy</span>
         <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Notes</span>
+        <span style="background:var(--blue-light);border:1px solid #B3D9EA;border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--blue);">ReceiptDataUrl</span>
+        <span style="background:var(--blue-light);border:1px solid #B3D9EA;border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--blue);">ReceiptMimeType</span>
+        <span style="background:var(--blue-light);border:1px solid #B3D9EA;border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--blue);">ReceiptName</span>
       </div>
-      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Expenses','Date\tCategory\tDescription\tAmount\tPaymentMethod\tVendor\tRecordedBy\tNotes')">📋 Copy</button>
+      <p style="font-size:0.75rem;color:var(--blue);margin-top:6px;">Blue columns store receipt image data (base64). Add these to your existing Expenses sheet if they're not already there.</p>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Expenses','Date\tCategory\tDescription\tAmount\tPaymentMethod\tVendor\tRecordedBy\tNotes\tReceiptDataUrl\tReceiptMimeType\tReceiptName')">📋 Copy</button>
     </div>
 
     <!-- Income -->
-    <div>
+    <div style="margin-bottom:16px;">
       <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">💰 Income</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
         <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Date</span>
@@ -1270,6 +1392,18 @@
         <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Notes</span>
       </div>
       <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Income','Date\tCash\tCard\tUPI\tZomato\tSwiggy\tOthers\tTotalIncome\tRecordedBy\tNotes')">📋 Copy</button>
+    </div>
+
+    <!-- Categories (NEW) -->
+    <div>
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">🏷️ Categories <span style="font-size:0.72rem;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">NEW — add this sheet</span></div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">This sheet stores your custom expense categories so they sync across all devices.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">type</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">name</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">createdAt</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Categories','type\tname\tcreatedAt')">📋 Copy</button>
     </div>
   </div>
 
@@ -1287,8 +1421,8 @@
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-body">
-          <h4>Create 5 Sheet Tabs</h4>
-          <p>Create tabs named exactly: <code>Inventory</code>, <code>StockReceived</code>, <code>StockUsage</code>, <code>Expenses</code>, <code>Income</code>.</p>
+          <h4>Create 6 Sheet Tabs</h4>
+          <p>Create tabs named exactly: <code>Inventory</code>, <code>StockReceived</code>, <code>StockUsage</code>, <code>Expenses</code>, <code>Income</code>, <code>Categories</code>.</p>
         </div>
       </div>
       <div class="step">
@@ -1344,6 +1478,32 @@
     </div>
   </div>
 
+  <!-- Manage Expense Categories -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:6px;"><span class="icon">🏷️</span> Manage Expense Categories</div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">Add or remove categories that appear in the expense dropdowns. Default categories cannot be removed.</p>
+
+    <!-- Public categories -->
+    <div style="margin-bottom:20px;">
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:10px;">Public Expense Categories <span style="font-size:0.72rem;background:var(--green-light);color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Staff visible</span></div>
+      <div id="pub-cat-list" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="new-pub-cat-input" data-ocid="settings.new_public_category.input" placeholder="New category name" style="flex:1;min-width:160px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addExpenseCategory('public');}">
+        <button type="button" class="btn btn-primary btn-sm" data-ocid="settings.add_public_category.button" onclick="addExpenseCategory('public')">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Owner-only categories -->
+    <div>
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:10px;">Owner Expense Categories <span style="font-size:0.72rem;background:var(--orange-pale);color:var(--orange);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Owner only</span></div>
+      <div id="own-cat-list" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="new-own-cat-input" data-ocid="settings.new_owner_category.input" placeholder="New owner category name" style="flex:1;min-width:160px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addExpenseCategory('owner');}">
+        <button type="button" class="btn btn-primary btn-sm" data-ocid="settings.add_owner_category.button" onclick="addExpenseCategory('owner')">+ Add</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Demo Data Reset -->
   <div class="card">
     <div class="card-title" style="margin-bottom:14px;"><span class="icon">🔄</span> Demo Data</div>
@@ -1370,23 +1530,209 @@
     <span class="tab-icon">📊</span>
     <span class="tab-label">Owner</span>
   </button>
-  <button type="button" class="tab-btn" data-ocid="nav.settings.tab" onclick="switchTab('settings')">
+  <button type="button" class="tab-btn" id="settingsTabBtn" data-ocid="nav.settings.tab" onclick="switchTab('settings')" style="display:none;">
     <span class="tab-icon">⚙️</span>
     <span class="tab-label">Settings</span>
   </button>
 </nav>
 
+<!-- Receipt Viewer Modal -->
+<div class="receipt-modal-overlay" id="receiptModalOverlay" data-ocid="expense.receipt_modal">
+  <div class="receipt-modal-box">
+    <div class="receipt-modal-header">
+      <span class="receipt-modal-title">📎 Receipt / Document</span>
+      <button type="button" class="receipt-modal-close" data-ocid="expense.receipt_modal.close_button" onclick="closeReceiptModal()" title="Close">✕</button>
+    </div>
+    <div class="receipt-modal-body" id="receiptModalBody"></div>
+  </div>
+</div>
+
 <script>
 // ================================================================
 //  CONSTANTS & CONFIGURATION
 // ================================================================
-const SHEETS_URL_KEY = 'rom_sheets_url';
-const PIN_KEY        = 'rom_owner_pin';
-const SESSION_KEY    = 'rom_owner_session';
-const DEMO_KEY       = 'rom_demo_';
+const SHEETS_URL_KEY  = 'rom_sheets_url';
+const PIN_KEY         = 'rom_owner_pin';
+const SESSION_KEY     = 'rom_owner_session';
+const DEMO_KEY        = 'rom_demo_';
+const CATEGORIES_KEY  = 'rom_expense_categories'; // used in demo mode only
+
+// Default public expense categories (always present)
+const DEFAULT_PUBLIC_CATEGORIES  = ['Groceries','Retail Purchase','Utilities','Maintenance','Marketing','Other'];
+// Default owner-only expense categories (always present)
+const DEFAULT_OWNER_CATEGORIES   = ['Salaries','Rent','Loan Repayment','Owner Withdrawal'];
 
 // Categories restricted to Owner Dashboard only (hidden from public Expenses tab)
 const OWNER_ONLY_CATEGORIES = ['Salaries', 'Rent', 'Loan Repayment', 'Owner Withdrawal'];
+
+// ================================================================
+//  EXPENSE CATEGORY MANAGEMENT
+// ================================================================
+
+// In-memory cache of custom categories for the current session
+let _categoriesCache = null;
+
+// Demo mode: read/write localStorage
+function getDemoCategories() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(CATEGORIES_KEY) || '{"public":[],"owner":[]}');
+    // Ensure arrays contain only valid non-empty strings
+    return {
+      public: (parsed.public || []).filter(c => c && typeof c === 'string' && c.trim() !== ''),
+      owner:  (parsed.owner  || []).filter(c => c && typeof c === 'string' && c.trim() !== ''),
+    };
+  } catch(e) { return { public: [], owner: [] }; }
+}
+function saveDemoCategories(cats) {
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
+}
+
+// Load categories: from Google Sheets if live, else localStorage
+async function loadCategories() {
+  if (isDemo()) {
+    _categoriesCache = getDemoCategories();
+  } else {
+    try {
+      const res = await apiGet('getCategories');
+      // Convert flat array [{type,name}] to {public:[...], owner:[...]}
+      const cats = { public: [], owner: [] };
+      (res.data || []).forEach(r => {
+        const name = r.name || r.Name || '';
+        const type = r.type || r.Type || '';
+        if (name && type === 'public') cats.public.push(name);
+        else if (name && type === 'owner') cats.owner.push(name);
+      });
+      // Filter out any empty/undefined entries
+      cats.public = cats.public.filter(c => c && c.trim() !== '');
+      cats.owner  = cats.owner.filter(c => c && c.trim() !== '');
+      _categoriesCache = cats;
+    } catch(e) {
+      _categoriesCache = { public: [], owner: [] };
+    }
+  }
+  return _categoriesCache;
+}
+
+function getCachedCategories() {
+  return _categoriesCache || { public: [], owner: [] };
+}
+
+function getAllPublicCategories() {
+  const custom = getCachedCategories();
+  return [...DEFAULT_PUBLIC_CATEGORIES, ...(custom.public || [])];
+}
+
+function getAllOwnerCategories() {
+  const custom = getCachedCategories();
+  return [...DEFAULT_OWNER_CATEGORIES, ...(custom.owner || [])];
+}
+
+function populateExpenseCategoryDropdowns() {
+  const pubCats  = getAllPublicCategories();
+  const ownCats  = getAllOwnerCategories();
+  const expCat   = document.getElementById('exp-cat');
+  const oexpCat  = document.getElementById('oexp-cat');
+  if (expCat) {
+    const prev = expCat.value;
+    expCat.innerHTML = '<option value="">-- Select --</option>' +
+      pubCats.map(c => `<option${c===prev?' selected':''}>${c}</option>`).join('');
+  }
+  if (oexpCat) {
+    const prev = oexpCat.value;
+    oexpCat.innerHTML = '<option value="">-- Select --</option>' +
+      ownCats.map(c => `<option${c===prev?' selected':''}>${c}</option>`).join('');
+  }
+}
+
+async function addExpenseCategory(type) {
+  const inputId = type === 'public' ? 'new-pub-cat-input' : 'new-own-cat-input';
+  const name = document.getElementById(inputId).value.trim();
+  if (!name) { toast('Please enter a category name.', 'warning'); return; }
+  const all = type === 'public' ? getAllPublicCategories() : getAllOwnerCategories();
+  if (all.map(c=>c.toLowerCase()).includes(name.toLowerCase())) {
+    toast(`"${name}" already exists.`, 'warning'); return;
+  }
+
+  if (isDemo()) {
+    const cats = getDemoCategories();
+    const list = cats[type] || [];
+    list.push(name);
+    cats[type] = list;
+    saveDemoCategories(cats);
+    _categoriesCache = cats;
+  } else {
+    try {
+      showLoading();
+      await apiPost('addCategory', { type, name, createdAt: today() });
+    } catch(err) {
+      toast('Error saving category: ' + err.message, 'error');
+      hideLoading();
+      return;
+    } finally {
+      hideLoading();
+    }
+    await loadCategories();
+  }
+
+  document.getElementById(inputId).value = '';
+  await renderCategoryManagementUI();
+  populateExpenseCategoryDropdowns();
+  toast(`Category "${name}" added!`, 'success');
+}
+
+async function removeExpenseCategory(type, name) {
+  if (isDemo()) {
+    const cats = getDemoCategories();
+    cats[type] = (cats[type] || []).filter(c => c !== name);
+    saveDemoCategories(cats);
+    _categoriesCache = cats;
+  } else {
+    try {
+      showLoading();
+      await apiPost('removeCategory', { type, name });
+    } catch(err) {
+      toast('Error removing category: ' + err.message, 'error');
+      hideLoading();
+      return;
+    } finally {
+      hideLoading();
+    }
+    await loadCategories();
+  }
+
+  await renderCategoryManagementUI();
+  populateExpenseCategoryDropdowns();
+  toast(`Category "${name}" removed.`, 'info');
+}
+
+async function renderCategoryManagementUI() {
+  // If cache is empty, load first
+  if (!_categoriesCache) { await loadCategories(); }
+  const custom = getCachedCategories();
+
+  function renderList(type, defaultList, customList) {
+    const listId = type === 'public' ? 'pub-cat-list' : 'own-cat-list';
+    const el = document.getElementById(listId);
+    if (!el) return;
+    // Filter out any falsy/empty values before rendering
+    const safeCustomList = (customList || []).filter(c => c && typeof c === 'string' && c.trim() !== '');
+    const allItems = [
+      ...defaultList.map(c => ({ name: c, isDefault: true })),
+      ...safeCustomList.map(c => ({ name: c, isDefault: false }))
+    ];
+    el.innerHTML = allItems.map((item, idx) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);" data-ocid="category_${type}.item.${idx+1}">
+        <span style="font-size:0.9rem;color:var(--text);">${item.name}</span>
+        ${item.isDefault
+          ? `<span style="font-size:0.72rem;color:var(--text-muted);background:var(--cream-dark);padding:2px 8px;border-radius:10px;">Default</span>`
+          : `<button type="button" class="btn btn-secondary btn-sm" style="padding:4px 10px;min-height:auto;font-size:0.75rem;" data-ocid="category_${type}.delete_button.${idx+1}" onclick="removeExpenseCategory('${type}','${item.name.replace(/'/g, "\\'")}')">Remove</button>`
+        }
+      </div>`).join('');
+  }
+
+  renderList('public', DEFAULT_PUBLIC_CATEGORIES, custom.public);
+  renderList('owner',  DEFAULT_OWNER_CATEGORIES,  custom.owner);
+}
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -1557,6 +1903,15 @@ function demoGet(action, params) {
     case 'getStockUsage': return { data: demoLoad('StockUsage') };
     case 'getExpenses': return { data: demoLoad('Expenses') };
     case 'getIncome': return { data: demoLoad('Income') };
+    case 'getCategories': {
+      // Return custom categories as flat [{type, name, createdAt}] array
+      const cats = getDemoCategories();
+      const rows = [
+        ...(cats.public || []).map(n => ({ type: 'public', name: n, createdAt: '' })),
+        ...(cats.owner  || []).map(n => ({ type: 'owner',  name: n, createdAt: '' })),
+      ];
+      return { data: rows };
+    }
     default: return { data: [] };
   }
 }
@@ -1610,6 +1965,20 @@ function demoPost(action, body) {
       const inv = demoLoad('Inventory');
       inv.push(body.row);
       demoSave('Inventory', inv);
+      return { success: true };
+    }
+    case 'addCategory': {
+      const cats = getDemoCategories();
+      const list = cats[body.type] || [];
+      if (!list.includes(body.name)) list.push(body.name);
+      cats[body.type] = list;
+      saveDemoCategories(cats);
+      return { success: true };
+    }
+    case 'removeCategory': {
+      const cats = getDemoCategories();
+      cats[body.type] = (cats[body.type] || []).filter(c => c !== body.name);
+      saveDemoCategories(cats);
       return { success: true };
     }
     default: return { success: false, error: 'Unknown action' };
@@ -1884,8 +2253,12 @@ function renderExpenses(data) {
     container.innerHTML = '<div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">No expenses in last 30 days.</div>';
     return;
   }
-  container.innerHTML = recent.map(r => `
-    <div class="item-card">
+  container.innerHTML = recent.map((r, idx) => {
+    const hasReceipt = r.ReceiptDataUrl && r.ReceiptDataUrl.length > 0;
+    const receiptBadge = hasReceipt
+      ? `<span class="receipt-badge" data-ocid="expense.receipt_badge.${idx+1}" onclick="openReceiptViewer('${r.ReceiptDataUrl}','${r.ReceiptMimeType||'image/jpeg'}')">📎 Receipt</span>`
+      : '';
+    return `<div class="item-card">
       <div class="item-card-header">
         <div>
           <div class="item-card-name">${r.Description||''}</div>
@@ -1897,14 +2270,85 @@ function renderExpenses(data) {
         <span class="badge badge-gray">${r.Category||''}</span>
         ${r.PaymentMethod ? `<span>💳 ${r.PaymentMethod}</span>` : ''}
         ${r.Vendor ? `<span>🏪 ${r.Vendor}</span>` : ''}
+        ${receiptBadge}
       </div>
-    </div>`).join('') +
+    </div>`;
+  }).join('') +
     `<div class="item-card" style="background:var(--orange-pale);border-color:var(--orange);">
       <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;">
         <span>Total (30 days)</span>
         <span style="font-size:1.1rem;color:var(--orange);">${fmt(totalAmt)}</span>
       </div>
     </div>`;
+}
+
+// ----------------------------------------------------------------
+//  RECEIPT ATTACHMENT
+// ----------------------------------------------------------------
+let _expenseAttachment = null; // { dataUrl, mimeType, name }
+
+function handleExpenseAttachment(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const maxSize = 5 * 1024 * 1024; // 5 MB
+  if (file.size > maxSize) {
+    toast('File is too large. Please choose a file under 5 MB.', 'warning');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    _expenseAttachment = { dataUrl: ev.target.result, mimeType: file.type, name: file.name };
+    showReceiptPreview(_expenseAttachment);
+  };
+  reader.readAsDataURL(file);
+  // Reset the input so the same file can be re-selected if needed
+  input.value = '';
+}
+
+function showReceiptPreview(attachment) {
+  const wrap = document.getElementById('expReceiptPreview');
+  const img  = document.getElementById('expReceiptImg');
+  const pdf  = document.getElementById('expReceiptPdf');
+  wrap.classList.add('visible');
+  if (attachment.mimeType === 'application/pdf') {
+    img.style.display = 'none';
+    pdf.style.display = 'flex';
+    document.getElementById('expReceiptPdfName').textContent = attachment.name;
+  } else {
+    pdf.style.display = 'none';
+    img.style.display = 'block';
+    img.src = attachment.dataUrl;
+  }
+}
+
+function clearExpenseAttachment() {
+  _expenseAttachment = null;
+  const wrap = document.getElementById('expReceiptPreview');
+  wrap.classList.remove('visible');
+  document.getElementById('expReceiptImg').src = '';
+  document.getElementById('expReceiptImg').style.display = 'none';
+  document.getElementById('expReceiptPdf').style.display = 'none';
+}
+
+function clearFullExpenseForm() {
+  document.getElementById('expenseForm').reset();
+  clearExpenseAttachment();
+}
+
+function openReceiptViewer(dataUrl, mimeType) {
+  const body = document.getElementById('receiptModalBody');
+  if (mimeType === 'application/pdf') {
+    body.innerHTML = `<iframe src="${dataUrl}" title="Receipt PDF"></iframe>`;
+  } else {
+    body.innerHTML = `<img src="${dataUrl}" alt="Receipt" style="max-width:100%;height:auto;border-radius:6px;">`;
+  }
+  document.getElementById('receiptModalOverlay').classList.add('visible');
+}
+
+function closeReceiptModal() {
+  document.getElementById('receiptModalOverlay').classList.remove('visible');
+  document.getElementById('receiptModalBody').innerHTML = '';
 }
 
 async function submitExpense(e) {
@@ -1919,11 +2363,18 @@ async function submitExpense(e) {
     RecordedBy: document.getElementById('exp-by').value,
     Notes: document.getElementById('exp-notes').value,
   };
+  // Attach receipt if present (stored as base64 in demo mode; in Sheets mode it's included in the row)
+  if (_expenseAttachment) {
+    row.ReceiptDataUrl = _expenseAttachment.dataUrl;
+    row.ReceiptMimeType = _expenseAttachment.mimeType;
+    row.ReceiptName = _expenseAttachment.name;
+  }
   try {
     showLoading();
     await apiPost('addExpense', { row });
     toast('Expense recorded successfully!', 'success');
     document.getElementById('expenseForm').reset();
+    clearExpenseAttachment();
     loadExpenses();
   } catch(err) {
     toast('Error: ' + err.message, 'error');
@@ -2132,6 +2583,7 @@ function initOwnerTab() {
   } else {
     document.getElementById('ownerPinScreen').style.display = 'block';
     document.getElementById('ownerContent').style.display = 'none';
+    document.getElementById('settingsTabBtn').style.display = 'none';
   }
 }
 
@@ -2180,17 +2632,27 @@ function showOwnerContent() {
   document.getElementById('ownerPinScreen').style.display = 'none';
   document.getElementById('ownerContent').style.display = 'block';
   document.getElementById('oexp-date').value = today();
+  document.getElementById('settingsTabBtn').style.display = '';
   initOwnerSelectors();
   loadOwnerDashboard();
   loadOwnerExpenses();
+  // Render category management UI now that Settings tab is accessible
+  // Re-load categories in case they changed since last session
+  loadCategories().then(() => {
+    populateExpenseCategoryDropdowns();
+    renderCategoryManagementUI();
+  });
 }
 
 function ownerLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   document.getElementById('ownerPinScreen').style.display = 'block';
   document.getElementById('ownerContent').style.display = 'none';
+  document.getElementById('settingsTabBtn').style.display = 'none';
   pinBuffer = '';
   updatePinDisplay();
+  // If currently on Settings tab, redirect to Inventory
+  if (currentTab === 'settings') switchTab('inventory');
 }
 
 function initOwnerSelectors() {
@@ -2429,7 +2891,8 @@ const SHEETS = {
   STOCK_RECEIVED:'StockReceived',
   STOCK_USAGE:   'StockUsage',
   EXPENSES:      'Expenses',
-  INCOME:        'Income'
+  INCOME:        'Income',
+  CATEGORIES:    'Categories'
 };
 
 function doGet(e) {
@@ -2442,6 +2905,7 @@ function doGet(e) {
       case 'getStockUsage':    result = getSheet(SHEETS.STOCK_USAGE);    break;
       case 'getExpenses':      result = getSheet(SHEETS.EXPENSES);       break;
       case 'getIncome':        result = getSheet(SHEETS.INCOME);         break;
+      case 'getCategories':    result = getSheet(SHEETS.CATEGORIES);     break;
       default: result = { error: 'Unknown action: ' + action };
     }
     return jsonResponse(result);
@@ -2465,6 +2929,8 @@ function doPost(e) {
       case 'addExpense':        result = appendRow(SHEETS.EXPENSES, body.row, EXP_COLS); break;
       case 'addIncome':         result = appendRow(SHEETS.INCOME, body.row, INC_COLS);   break;
       case 'addInventoryItem':  result = appendRow(SHEETS.INVENTORY, body.row, INV_COLS); break;
+      case 'addCategory':       result = addCategory(body.type, body.name, body.createdAt); break;
+      case 'removeCategory':    result = removeCategory(body.type, body.name); break;
       default: result = { error: 'Unknown action: ' + action };
     }
     return jsonResponse(result);
@@ -2500,9 +2966,10 @@ function getSheet(sheetName) {
 // ---- POST helpers ----
 const SR_COLS  = ['Date','ItemID','ItemName','Quantity','Unit','Source','Supplier','CostPerUnit','TotalCost','RecordedBy'];
 const SU_COLS  = ['Date','ItemID','ItemName','QuantityUsed','Unit','RecordedBy','Notes'];
-const EXP_COLS = ['Date','Category','Description','Amount','PaymentMethod','Vendor','RecordedBy','Notes'];
+const EXP_COLS = ['Date','Category','Description','Amount','PaymentMethod','Vendor','RecordedBy','Notes','ReceiptDataUrl','ReceiptMimeType','ReceiptName'];
 const INC_COLS = ['Date','Cash','Card','UPI','Zomato','Swiggy','Others','TotalIncome','RecordedBy','Notes'];
 const INV_COLS = ['ItemID','ItemName','Category','Unit','CurrentStock','MinStockLevel','LastUpdated'];
+const CAT_COLS = ['type','name','createdAt'];
 
 function appendRow(sheetName, rowObj, columns) {
   const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -2510,6 +2977,34 @@ function appendRow(sheetName, rowObj, columns) {
   if (!sheet) return { error: 'Sheet not found: ' + sheetName };
   const row = columns.map(c => rowObj[c] !== undefined ? rowObj[c] : '');
   sheet.appendRow(row);
+  return { success: true };
+}
+
+function addCategory(type, name, createdAt) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEETS.CATEGORIES);
+  if (!sheet) return { error: 'Categories sheet not found. Please create it first.' };
+  // Check for duplicates
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(type) && String(rows[i][1]).toLowerCase() === String(name).toLowerCase()) {
+      return { success: true }; // already exists
+    }
+  }
+  sheet.appendRow([type, name, createdAt || new Date().toISOString().substring(0,10)]);
+  return { success: true };
+}
+
+function removeCategory(type, name) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEETS.CATEGORIES);
+  if (!sheet) return { error: 'Categories sheet not found.' };
+  const rows = sheet.getDataRange().getValues();
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][0]) === String(type) && String(rows[i][1]) === String(name)) {
+      sheet.deleteRow(i + 1);
+    }
+  }
   return { success: true };
 }
 
@@ -2564,6 +3059,12 @@ function init() {
   // Seed demo data
   seedDemoData();
 
+  // Load categories (async) then populate dropdowns and render management UI
+  loadCategories().then(() => {
+    populateExpenseCategoryDropdowns();
+    renderCategoryManagementUI();
+  });
+
   // Check mode
   updateDemoBanner();
 
@@ -2572,6 +3073,11 @@ function init() {
 
   // Inject Apps Script code
   injectAppsScriptCode();
+
+  // Show Settings tab if owner session is already active
+  if (sessionStorage.getItem(SESSION_KEY) === 'authenticated') {
+    document.getElementById('settingsTabBtn').style.display = '';
+  }
 
   // Load initial tab
   loadInventory();
@@ -2583,6 +3089,12 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Close receipt modal on overlay click
+document.addEventListener('click', function(e) {
+  const overlay = document.getElementById('receiptModalOverlay');
+  if (e.target === overlay) closeReceiptModal();
+});
 </script>
 </body>
 </html>
