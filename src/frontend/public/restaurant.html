@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#3D1F0A">
+  <title>Restaurant Operations Manager</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange:       #E8651A;
+      --orange-light: #F4874B;
+      --orange-pale:  #FDF0E6;
+      --brown-dark:   #3D1F0A;
+      --brown:        #6B3A1F;
+      --brown-mid:    #9C5B2B;
+      --cream:        #FBF5EE;
+      --cream-dark:   #F2E6D8;
+      --green:        #2D7A4F;
+      --green-light:  #E6F4EC;
+      --yellow:       #C49A00;
+      --yellow-light: #FFF8E1;
+      --red:          #C0392B;
+      --red-light:    #FDEDEC;
+      --blue:         #1A5F7A;
+      --blue-light:   #E6F2F7;
+      --text:         #2C1A0E;
+      --text-muted:   #8A6852;
+      --border:       #DDC9B8;
+      --shadow:       0 2px 8px rgba(61,31,10,0.1);
+      --shadow-lg:    0 8px 24px rgba(61,31,10,0.15);
+      --radius:       10px;
+      --radius-sm:    6px;
+      --transition:   0.2s ease;
+    }
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 100%);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-lg);
+    }
+    .app-logo { font-size: 24px; }
+    .app-title-block h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.01em; }
+    .app-title-block p { font-size: 0.72rem; opacity: 0.75; margin-top: 1px; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .demo-badge {
+      background: var(--orange);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ===== DEMO BANNER ===== */
+    .demo-banner {
+      background: linear-gradient(90deg, var(--orange) 0%, var(--orange-light) 100%);
+      color: #fff;
+      text-align: center;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: none;
+    }
+    .demo-banner.visible { display: block; }
+    .demo-banner a { color: #fff; text-decoration: underline; cursor: pointer; }
+
+    /* ===== BOTTOM TAB NAVIGATION ===== */
+    .tab-nav {
+      background: var(--brown-dark);
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      box-shadow: 0 -2px 12px rgba(61,31,10,0.25);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px 8px;
+      color: rgba(255,255,255,0.55);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: color var(--transition);
+      border-top: 3px solid transparent;
+      letter-spacing: 0.02em;
+      min-height: 60px;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn:hover { color: rgba(255,255,255,0.85); }
+    .tab-btn.active {
+      color: var(--orange-light);
+      border-top-color: var(--orange-light);
+      background: rgba(255,255,255,0.05);
+    }
+    .tab-icon { font-size: 1.3rem; line-height: 1; }
+    .tab-label { font-size: 0.68rem; font-weight: 600; }
+
+    /* ===== CONTENT AREA ===== */
+    .tab-content { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* ===== SECTION CARD ===== */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--brown);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .icon { font-size: 1.1rem; }
+
+    /* ===== PAGE HEADING ===== */
+    .page-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--brown-dark);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ===== FORMS ===== */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    input, select, textarea {
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem; /* 16px min to prevent iOS zoom */
+      color: var(--text);
+      background: var(--cream);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      width: 100%;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(232,101,26,0.12);
+      background: #fff;
+    }
+    textarea { resize: vertical; min-height: 72px; }
+    .input-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 22px;
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+      letter-spacing: 0.02em;
+      min-height: 48px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary {
+      background: var(--orange);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--brown-mid); }
+    .btn-secondary {
+      background: var(--cream-dark);
+      color: var(--brown);
+      border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+    }
+    .btn-danger:hover { background: #922b21; }
+    .btn-sm { padding: 9px 16px; font-size: 0.82rem; min-height: 40px; }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+    /* ===== STOCK STATUS BADGES ===== */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-green { background: var(--green-light); color: var(--green); }
+    .badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+    .badge-red { background: var(--red-light); color: var(--red); }
+    .badge-blue { background: var(--blue-light); color: var(--blue); }
+    .badge-gray { background: var(--cream-dark); color: var(--text-muted); }
+
+    /* ===== TABLES (desktop only) ===== */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead tr { background: var(--orange-pale); }
+    th { padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--brown); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:hover { background: var(--cream); }
+    .table-empty { text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.88rem; }
+
+    /* ===== ITEM CARDS (mobile-first lists) ===== */
+    .item-card-list { display: flex; flex-direction: column; gap: 10px; }
+    .item-card {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+    .item-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .item-card-name { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .item-card-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .item-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .item-card-amount { font-size: 1.05rem; font-weight: 800; color: var(--red); }
+    .item-card-amount.green { color: var(--green); }
+
+    /* Income day card */
+    .income-day-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .income-day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .income-day-header:hover { background: var(--cream); }
+    .income-day-date { font-weight: 700; font-size: 0.92rem; color: var(--brown-dark); }
+    .income-day-total { font-size: 1.1rem; font-weight: 800; color: var(--green); }
+    .income-day-chevron { color: var(--text-muted); font-size: 0.85rem; transition: transform 0.2s; }
+    .income-day-card.open .income-day-chevron { transform: rotate(180deg); }
+    .income-day-body {
+      display: none;
+      padding: 0 16px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .income-day-card.open .income-day-body { display: block; }
+    .income-channel-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      padding-top: 10px;
+      font-size: 0.83rem;
+    }
+    .icb-row { display: flex; justify-content: space-between; align-items: center; }
+    .icb-label { color: var(--text-muted); }
+    .icb-val { font-weight: 700; color: var(--brown-dark); }
+
+    /* ===== STAT CARDS ===== */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .stat-card .stat-label { font-size: 0.73rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .stat-card .stat-value { font-size: 1.35rem; font-weight: 800; color: var(--brown-dark); }
+    .stat-card.green .stat-value { color: var(--green); }
+    .stat-card.red .stat-value { color: var(--red); }
+    .stat-card.orange .stat-value { color: var(--orange); }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 340px;
+    }
+    .toast {
+      background: var(--brown-dark);
+      color: #fff;
+      padding: 13px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.25s ease;
+      border-left: 4px solid var(--orange);
+    }
+    .toast.success { border-left-color: var(--green); }
+    .toast.error { border-left-color: var(--red); }
+    .toast.warning { border-left-color: var(--yellow); }
+    @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* ===== LOADING OVERLAY ===== */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(61,31,10,0.35);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+    }
+    .loading-overlay.visible { display: flex; }
+    .spinner {
+      width: 46px;
+      height: 46px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: var(--orange-light);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== PIN SCREEN ===== */
+    .pin-screen {
+      max-width: 340px;
+      margin: 40px auto 0;
+      text-align: center;
+    }
+    .pin-screen h2 { font-size: 1.3rem; color: var(--brown-dark); margin-bottom: 8px; }
+    .pin-screen p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 28px; }
+    .pin-display {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .pin-dot {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .pin-dot.filled { background: var(--orange); border-color: var(--orange); }
+    .pin-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      margin: 0 auto 16px;
+    }
+    .pin-key {
+      padding: 18px 10px;
+      background: var(--cream-dark);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition);
+      color: var(--brown-dark);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pin-key:hover { background: var(--orange-pale); border-color: var(--orange); }
+    .pin-key.danger { color: var(--red); }
+
+    /* ===== BAR CHART ===== */
+    .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 160px; padding: 10px 0; }
+    .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .bar-pair { display: flex; gap: 3px; align-items: flex-end; width: 100%; justify-content: center; }
+    .bar { min-width: 14px; border-radius: 4px 4px 0 0; transition: height 0.5s ease; position: relative; }
+    .bar-income { background: var(--green); }
+    .bar-expense { background: var(--orange); }
+    .bar-label { font-size: 0.68rem; color: var(--text-muted); text-align: center; white-space: nowrap; }
+    .chart-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 0.78rem; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 5px; }
+
+    /* ===== USAGE LIST ===== */
+    .usage-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .usage-row:last-child { border-bottom: none; }
+    .usage-row-top {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .usage-item-select { flex: 1; }
+    .usage-qty-input { width: 100px; flex: 0 0 100px; }
+    .usage-remove { flex: 0 0 auto; }
+    .usage-notes-input { width: 100%; }
+
+    /* ===== COLLAPSIBLE ===== */
+    .collapsible-header {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--orange-pale);
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      color: var(--brown);
+      margin-bottom: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .collapsible-header:hover { background: var(--cream-dark); }
+    .collapsible-content { display: none; padding: 14px 16px; border: 1.5px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+    .collapsible-content.open { display: block; }
+    .code-block {
+      background: var(--brown-dark);
+      color: #F8D7A8;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.55;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    /* ===== PROFIT/LOSS ===== */
+    .profit-box {
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profit-box.profit { background: var(--green-light); border: 2px solid var(--green); }
+    .profit-box.loss { background: var(--red-light); border: 2px solid var(--red); }
+    .profit-box .pl-label { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .profit-box.profit .pl-label { color: var(--green); }
+    .profit-box.loss .pl-label { color: var(--red); }
+    .profit-box .pl-value { font-size: 2rem; font-weight: 800; }
+    .profit-box.profit .pl-value { color: var(--green); }
+    .profit-box.loss .pl-value { color: var(--red); }
+
+    /* ===== DIVIDER ===== */
+    .divider { border: none; border-top: 1.5px solid var(--border); margin: 18px 0; }
+
+    /* ===== TOTAL ROW ===== */
+    .total-row td { font-weight: 700; background: var(--orange-pale); border-top: 2px solid var(--orange); }
+
+    /* ===== INCOME CHANNEL ROW ===== */
+    .income-channel-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .income-channel-row:last-child { border-bottom: none; }
+    .income-channel-label { min-width: 120px; font-size: 0.88rem; font-weight: 600; color: var(--text-muted); }
+    .income-channel-input { width: 130px; max-width: 130px; flex: 0 0 130px; text-align: right; }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar-wrap { background: var(--cream-dark); border-radius: 8px; height: 10px; overflow: hidden; margin-top: 4px; }
+    .progress-bar-fill { height: 100%; border-radius: 8px; transition: width 0.5s; }
+
+    /* ===== ALERT ===== */
+    .alert {
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-warning { background: var(--yellow-light); color: #7A5F00; border: 1px solid #FFECB3; }
+    .alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid #B3D9EA; }
+
+    /* ===== INSTRUCTION STEPS ===== */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex: 0 0 30px;
+      height: 30px;
+      background: var(--orange);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.88rem;
+    }
+    .step-body h4 { font-size: 0.9rem; font-weight: 700; color: var(--brown-dark); margin-bottom: 3px; }
+    .step-body p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.55; }
+    .step-body code { background: var(--orange-pale); padding: 1px 5px; border-radius: 3px; font-family: monospace; color: var(--brown); font-size: 0.85em; }
+
+    /* ===== RECENT MOVEMENTS ===== */
+    .movement-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+    .movement-item:last-child { border-bottom: none; }
+    .movement-date { font-size: 0.75rem; color: var(--text-muted); }
+    .movement-type { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      body { padding-bottom: 80px; }
+      .tab-content { padding: 14px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .bar-chart { height: 120px; }
+
+      /* Compact header on mobile */
+      .app-header { padding: 10px 14px; }
+      .app-title-block h1 { font-size: 1rem; }
+      .app-title-block p { display: none; }
+
+      /* Toast at bottom on mobile */
+      .toast-container {
+        top: auto;
+        bottom: 90px;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100vw - 32px);
+        max-width: 380px;
+        align-items: center;
+      }
+
+      /* Usage row full width on mobile */
+      .usage-row { flex-direction: column; gap: 8px; }
+      .usage-row-top { width: 100%; }
+      .usage-item-select { flex: 1; }
+      .usage-qty-input { width: 90px; flex: 0 0 90px; }
+      .usage-notes-input { width: 100%; }
+    }
+
+    @media (min-width: 601px) {
+      /* Desktop: toast top-right */
+      .toast-container {
+        top: 20px;
+        right: 20px;
+        left: auto;
+        transform: none;
+        bottom: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="app-logo">🍽️</div>
+  <div class="app-title-block">
+    <h1>Restaurant Manager</h1>
+    <p id="headerSubtitle">Operations Dashboard</p>
+  </div>
+  <div class="header-right">
+    <span class="demo-badge" id="demoBadge" style="display:none">Demo</span>
+  </div>
+</header>
+
+<!-- Demo Banner -->
+<div class="demo-banner" id="demoBanner">
+  ⚠️ Demo Mode — Data is stored locally only. <a onclick="switchTab('settings')">Configure Google Sheets</a> to save data permanently.
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB: INVENTORY                                              -->
+<!-- ============================================================ -->
+<div class="tab-content active" id="tab-inventory">
+  <h2 class="page-title"><span>📦</span> Inventory Management</h2>
+
+  <!-- Stock Levels -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📋</span> Current Stock Levels</div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="loadInventory()">🔄 Refresh</button>
+    </div>
+    <div class="item-card-list" id="inventoryTableBody">
+      <div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">Loading inventory...</div>
+    </div>
+  </div>
+
+  <!-- Add New Item to Inventory -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">➕</span> Add New Inventory Item</div>
+    </div>
+    <form id="addItemForm" onsubmit="submitAddItem(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="ai-name">Item Name</label>
+          <input type="text" id="ai-name" data-ocid="add_item.name.input" placeholder="e.g. Chicken" required>
+        </div>
+        <div class="form-group">
+          <label for="ai-category">Category</label>
+          <input type="text" id="ai-category" data-ocid="add_item.category.input" placeholder="e.g. Protein, Vegetables">
+        </div>
+        <div class="form-group">
+          <label for="ai-unit">Unit</label>
+          <input type="text" id="ai-unit" data-ocid="add_item.unit.input" placeholder="kg / pcs / L" required>
+        </div>
+        <div class="form-group">
+          <label for="ai-stock">Opening Stock</label>
+          <input type="number" id="ai-stock" data-ocid="add_item.stock.input" placeholder="0" min="0" step="0.01" value="0">
+        </div>
+        <div class="form-group">
+          <label for="ai-min">Min Stock Level</label>
+          <input type="number" id="ai-min" data-ocid="add_item.min_stock.input" placeholder="0" min="0" step="0.01" value="0">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary" data-ocid="add_item.submit_button">➕ Add Item</button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm('addItemForm')">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Add Stock Received -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📥</span> Add Stock Received</div>
+    </div>
+    <form id="stockReceivedForm" onsubmit="submitStockReceived(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="sr-item">Item</label>
+          <select id="sr-item" data-ocid="stock_received.item.select" required onchange="fillSrUnit()">
+            <option value="">-- Select Item --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sr-qty">Quantity</label>
+          <input type="number" id="sr-qty" data-ocid="stock_received.qty.input" placeholder="0" min="0.01" step="0.01" required oninput="calcStockTotal()">
+        </div>
+        <div class="form-group">
+          <label for="sr-unit">Unit</label>
+          <input type="text" id="sr-unit" data-ocid="stock_received.unit.input" placeholder="kg / pcs / L" required>
+        </div>
+        <div class="form-group">
+          <label for="sr-source">Source</label>
+          <select id="sr-source" data-ocid="stock_received.source.select" required>
+            <option value="Bulk Delivery">Bulk Delivery</option>
+            <option value="Retail Purchase">Retail Purchase</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sr-supplier">Supplier / Shop</label>
+          <input type="text" id="sr-supplier" data-ocid="stock_received.supplier.input" placeholder="Supplier name">
+        </div>
+        <div class="form-group">
+          <label for="sr-cpu">Cost Per Unit (₹)</label>
+          <input type="number" id="sr-cpu" data-ocid="stock_received.cost_per_unit.input" placeholder="0.00" min="0" step="0.01" oninput="calcStockTotal()">
+        </div>
+        <div class="form-group">
+          <label for="sr-total">Total Cost (₹)</label>
+          <input type="number" id="sr-total" data-ocid="stock_received.total_cost.input" placeholder="Auto-calculated" readonly>
+        </div>
+        <div class="form-group">
+          <label for="sr-date">Date</label>
+          <input type="date" id="sr-date" data-ocid="stock_received.date.input" required>
+        </div>
+        <div class="form-group">
+          <label for="sr-by">Recorded By</label>
+          <input type="text" id="sr-by" data-ocid="stock_received.recorded_by.input" placeholder="Staff name">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary" data-ocid="stock_received.submit_button">📥 Record Stock Received</button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm('stockReceivedForm')">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Daily Usage -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📤</span> Daily Usage / Stock Reduction</div>
+    </div>
+    <div class="form-grid" style="margin-bottom:14px;">
+      <div class="form-group">
+        <label for="usage-date">Date</label>
+        <input type="date" id="usage-date" data-ocid="usage.date.input">
+      </div>
+      <div class="form-group">
+        <label for="usage-by">Recorded By</label>
+        <input type="text" id="usage-by" data-ocid="usage.recorded_by.input" placeholder="Staff name">
+      </div>
+    </div>
+    <div id="usageRows">
+      <!-- rows added dynamically -->
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary btn-sm" data-ocid="usage.add_row.button" onclick="addUsageRow()">+ Add Item</button>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" data-ocid="usage.submit_button" onclick="submitUsage()">📤 Record Usage</button>
+    </div>
+  </div>
+
+  <!-- Recent Movements -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🔄</span> Recent Stock Movements (Last 7 Days)</div>
+    </div>
+    <div id="recentMovements">
+      <p class="table-empty">Loading movements...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB: EXPENSES                                               -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-expenses">
+  <h2 class="page-title"><span>💸</span> Expenses</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">➕</span> Add Expense</div>
+    </div>
+    <form id="expenseForm" onsubmit="submitExpense(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="exp-date">Date</label>
+          <input type="date" id="exp-date" data-ocid="expense.date.input" required>
+        </div>
+        <div class="form-group">
+          <label for="exp-cat">Category</label>
+          <select id="exp-cat" data-ocid="expense.category.select" required>
+            <option value="">-- Select --</option>
+            <option>Groceries</option>
+            <option>Retail Purchase</option>
+            <option>Utilities</option>
+            <option>Maintenance</option>
+            <option>Marketing</option>
+            <option>Other</option>
+          </select>
+          <p class="input-hint">Salary, Rent & owner expenses are logged in the Owner Dashboard.</p>
+        </div>
+        <div class="form-group full">
+          <label for="exp-desc">Description</label>
+          <input type="text" id="exp-desc" data-ocid="expense.description.input" placeholder="What was this expense for?" required>
+        </div>
+        <div class="form-group">
+          <label for="exp-amount">Amount (₹)</label>
+          <input type="number" id="exp-amount" data-ocid="expense.amount.input" placeholder="0.00" min="0.01" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="exp-pay">Payment Method</label>
+          <select id="exp-pay" data-ocid="expense.payment_method.select">
+            <option value="">-- Select --</option>
+            <option>Cash</option>
+            <option>Card</option>
+            <option>UPI</option>
+            <option>Bank Transfer</option>
+            <option>Credit</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="exp-vendor">Vendor / Shop</label>
+          <input type="text" id="exp-vendor" data-ocid="expense.vendor.input" placeholder="Vendor name">
+        </div>
+        <div class="form-group">
+          <label for="exp-by">Recorded By</label>
+          <input type="text" id="exp-by" data-ocid="expense.recorded_by.input" placeholder="Staff name">
+        </div>
+        <div class="form-group full">
+          <label for="exp-notes">Notes</label>
+          <textarea id="exp-notes" data-ocid="expense.notes.textarea" placeholder="Optional notes..."></textarea>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary" data-ocid="expense.submit_button">💸 Add Expense</button>
+        <button type="button" class="btn btn-secondary" onclick="resetForm('expenseForm')">Reset</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📜</span> Recent Expenses (Last 30 Days)</div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="loadExpenses()">🔄 Refresh</button>
+    </div>
+    <div id="expenseSummaryStats" class="stat-grid" style="margin-bottom:14px;"></div>
+    <div class="item-card-list" id="expenseTableBody">
+      <div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">Loading expenses...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB: INCOME                                                 -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-income">
+  <h2 class="page-title"><span>💰</span> Daily Income</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📝</span> Record Daily Income</div>
+    </div>
+    <div id="incomeDuplicateAlert" class="alert alert-warning" style="display:none">
+      ⚠️ An income entry for this date already exists. Recording will add a new entry.
+    </div>
+    <div class="form-grid" style="margin-bottom:16px;">
+      <div class="form-group">
+        <label for="inc-date">Date</label>
+        <input type="date" id="inc-date" data-ocid="income.date.input" oninput="checkIncomeDuplicate()">
+      </div>
+      <div class="form-group">
+        <label for="inc-by">Recorded By</label>
+        <input type="text" id="inc-by" data-ocid="income.recorded_by.input" placeholder="Staff name">
+      </div>
+    </div>
+    <div class="income-channel-row">
+      <span class="income-channel-label">💵 Cash</span>
+      <input type="number" class="income-channel-input" id="inc-cash" data-ocid="income.cash.input" placeholder="0.00" min="0" step="0.01" oninput="calcIncomeTotal()">
+    </div>
+    <div class="income-channel-row">
+      <span class="income-channel-label">💳 Card (POS)</span>
+      <input type="number" class="income-channel-input" id="inc-card" data-ocid="income.card.input" placeholder="0.00" min="0" step="0.01" oninput="calcIncomeTotal()">
+    </div>
+    <div class="income-channel-row">
+      <span class="income-channel-label">📱 UPI</span>
+      <input type="number" class="income-channel-input" id="inc-upi" data-ocid="income.upi.input" placeholder="0.00" min="0" step="0.01" oninput="calcIncomeTotal()">
+    </div>
+    <div class="income-channel-row">
+      <span class="income-channel-label">🛵 Zomato</span>
+      <input type="number" class="income-channel-input" id="inc-zomato" data-ocid="income.zomato.input" placeholder="0.00" min="0" step="0.01" oninput="calcIncomeTotal()">
+    </div>
+    <div class="income-channel-row">
+      <span class="income-channel-label">🛴 Swiggy</span>
+      <input type="number" class="income-channel-input" id="inc-swiggy" data-ocid="income.swiggy.input" placeholder="0.00" min="0" step="0.01" oninput="calcIncomeTotal()">
+    </div>
+    <div class="income-channel-row">
+      <span class="income-channel-label">➕ Others</span>
+      <input type="number" class="income-channel-input" id="inc-others" data-ocid="income.others.input" placeholder="0.00" min="0" step="0.01" oninput="calcIncomeTotal()">
+    </div>
+    <div class="form-group" style="margin:10px 0;">
+      <label for="inc-others-desc">Others Description</label>
+      <input type="text" id="inc-others-desc" data-ocid="income.others_desc.input" placeholder="e.g. Catering, Events...">
+    </div>
+    <div class="income-channel-row" style="background:var(--orange-pale);padding:12px;border-radius:var(--radius-sm);font-weight:700;font-size:1.05rem;color:var(--brown-dark);">
+      <span class="income-channel-label" style="font-weight:800;color:var(--brown-dark);">💰 Total Income</span>
+      <span id="incomeTotal" style="font-size:1.15rem;font-weight:800;color:var(--orange);">₹0.00</span>
+    </div>
+    <div class="form-group" style="margin-top:12px;">
+      <label for="inc-notes">Notes</label>
+      <textarea id="inc-notes" data-ocid="income.notes.textarea" placeholder="Any special notes for the day..."></textarea>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" data-ocid="income.submit_button" onclick="submitIncome()">💰 Record Income</button>
+      <button type="button" class="btn btn-secondary" onclick="clearIncomeForm()">Reset</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📊</span> Last 7 Days Income Summary</div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="loadIncome()">🔄 Refresh</button>
+    </div>
+    <div id="incomeTableBody">
+      <div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">Loading income data...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB: OWNER DASHBOARD                                        -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-owner">
+  <!-- PIN Screen -->
+  <div id="ownerPinScreen">
+    <div class="pin-screen">
+      <div style="font-size:3rem;margin-bottom:12px;">🔐</div>
+      <h2>Owner Dashboard</h2>
+      <p>Enter your PIN to access the owner dashboard</p>
+      <div class="pin-display" id="pinDisplay">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <div class="pin-pad">
+        <button type="button" class="pin-key" data-ocid="pin.key.1" onclick="pinInput('1')">1</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.2" onclick="pinInput('2')">2</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.3" onclick="pinInput('3')">3</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.4" onclick="pinInput('4')">4</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.5" onclick="pinInput('5')">5</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.6" onclick="pinInput('6')">6</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.7" onclick="pinInput('7')">7</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.8" onclick="pinInput('8')">8</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.9" onclick="pinInput('9')">9</button>
+        <button type="button" class="pin-key danger" data-ocid="pin.clear.button" onclick="pinClear()">✕</button>
+        <button type="button" class="pin-key" data-ocid="pin.key.0" onclick="pinInput('0')">0</button>
+        <button type="button" class="pin-key" data-ocid="pin.backspace.button" onclick="pinBackspace()">⌫</button>
+      </div>
+      <p id="pinError" style="color:var(--red);font-size:0.83rem;min-height:20px;"></p>
+    </div>
+  </div>
+
+  <!-- Owner Content (shown after auth) -->
+  <div id="ownerContent" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+      <h2 class="page-title" style="margin-bottom:0;"><span>📊</span> Owner Dashboard</h2>
+      <button type="button" class="btn btn-secondary btn-sm" data-ocid="owner.logout.button" onclick="ownerLogout()">🔒 Lock</button>
+    </div>
+
+    <!-- Month Selector -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">📅</span> Select Period</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="owner-month">Month</label>
+          <select id="owner-month" data-ocid="owner.month.select" onchange="loadOwnerDashboard()"></select>
+        </div>
+        <div class="form-group">
+          <label for="owner-year">Year</label>
+          <select id="owner-year" data-ocid="owner.year.select" onchange="loadOwnerDashboard()"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Owner-Only Expense Entry -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><span class="icon">🔒</span> Owner Expenses <span style="font-size:0.72rem;background:var(--orange-pale);color:var(--orange);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Private</span></div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="loadOwnerExpenses()">🔄 Refresh</button>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:14px;">Salaries, rent, and other private expenses — visible only here.</p>
+      <form id="ownerExpenseForm" onsubmit="submitOwnerExpense(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="oexp-date">Date</label>
+            <input type="date" id="oexp-date" data-ocid="owner_expense.date.input" required>
+          </div>
+          <div class="form-group">
+            <label for="oexp-cat">Category</label>
+            <select id="oexp-cat" data-ocid="owner_expense.category.select" required>
+              <option value="">-- Select --</option>
+              <option>Salaries</option>
+              <option>Rent</option>
+              <option>Loan Repayment</option>
+              <option>Owner Withdrawal</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="oexp-desc">Description</label>
+            <input type="text" id="oexp-desc" data-ocid="owner_expense.description.input" placeholder="e.g. Monthly salary for 3 staff" required>
+          </div>
+          <div class="form-group">
+            <label for="oexp-amount">Amount (₹)</label>
+            <input type="number" id="oexp-amount" data-ocid="owner_expense.amount.input" placeholder="0.00" min="0.01" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="oexp-pay">Payment Method</label>
+            <select id="oexp-pay" data-ocid="owner_expense.payment_method.select">
+              <option value="">-- Select --</option>
+              <option>Cash</option>
+              <option>Bank Transfer</option>
+              <option>UPI</option>
+              <option>Cheque</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="oexp-notes">Notes</label>
+            <textarea id="oexp-notes" data-ocid="owner_expense.notes.textarea" placeholder="Optional notes..."></textarea>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary" data-ocid="owner_expense.submit_button">🔒 Add Owner Expense</button>
+          <button type="button" class="btn btn-secondary" onclick="resetForm('ownerExpenseForm')">Reset</button>
+        </div>
+      </form>
+      <hr class="divider">
+      <div id="ownerExpenseList">
+        <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;padding:16px 0;">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Profit / Loss Box -->
+    <div id="profitBox" class="profit-box profit">
+      <div class="pl-label">Net Profit</div>
+      <div class="pl-value" id="profitValue">₹0</div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stat-grid" id="ownerStatGrid"></div>
+
+    <!-- Income Breakdown -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;"><span class="icon">💰</span> Income Breakdown</div>
+      <div class="table-wrap">
+        <table id="incomeBreakdownTable">
+          <thead><tr><th>Channel</th><th>Amount (₹)</th><th>Share</th></tr></thead>
+          <tbody id="incomeBreakdownBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Expense Breakdown -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;"><span class="icon">💸</span> Expense Breakdown by Category</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Amount (₹)</th><th>Share</th></tr></thead>
+          <tbody id="expBreakdownBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6-Month Chart -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px;"><span class="icon">📈</span> Income vs Expenses (Last 6 Months)</div>
+      <div class="bar-chart" id="barChart"></div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--green);"></span>Income</span>
+        <span><span class="legend-dot" style="background:var(--orange);"></span>Expenses</span>
+      </div>
+    </div>
+
+    <!-- Stock Value -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;"><span class="icon">🏷️</span> Estimated Stock Value</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Stock</th><th>Unit</th><th>Last Price</th><th>Value (₹)</th></tr></thead>
+          <tbody id="stockValueBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  TAB: SETTINGS                                               -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-settings">
+  <h2 class="page-title"><span>⚙️</span> Settings</h2>
+
+  <!-- Google Sheets Config -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;"><span class="icon">🔗</span> Google Sheets Configuration</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label for="sheets-url">Google Apps Script Web App URL</label>
+      <input type="url" id="sheets-url" data-ocid="settings.sheets_url.input" placeholder="https://script.google.com/macros/s/.../exec">
+      <p class="input-hint">Paste the deployment URL from your Google Apps Script. Leave blank to use Demo Mode.</p>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" data-ocid="settings.save_url.button" onclick="saveSheetUrl()">💾 Save URL</button>
+      <button type="button" class="btn btn-secondary" onclick="clearSheetUrl()">🗑️ Clear (Use Demo Mode)</button>
+    </div>
+    <div id="urlStatus" style="margin-top:12px;font-size:0.83rem;color:var(--text-muted);"></div>
+  </div>
+
+  <!-- PIN Change -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;"><span class="icon">🔑</span> Change Owner PIN</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="pin-current">Current PIN</label>
+        <input type="password" id="pin-current" data-ocid="settings.current_pin.input" placeholder="Enter current PIN" maxlength="6">
+      </div>
+      <div class="form-group">
+        <label for="pin-new">New PIN (4-6 digits)</label>
+        <input type="password" id="pin-new" data-ocid="settings.new_pin.input" placeholder="Enter new PIN" maxlength="6">
+      </div>
+      <div class="form-group">
+        <label for="pin-confirm">Confirm New PIN</label>
+        <input type="password" id="pin-confirm" data-ocid="settings.confirm_pin.input" placeholder="Repeat new PIN" maxlength="6">
+      </div>
+    </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" data-ocid="settings.change_pin.button" onclick="changePin()">🔑 Change PIN</button>
+    </div>
+  </div>
+
+  <!-- Column Headers Reference -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;"><span class="icon">🗂️</span> Google Sheet Column Headers (Row 1)</div>
+    <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:16px;">Copy these headers exactly into Row 1 of each sheet tab. The app reads and writes from Row 2 onwards.</p>
+
+    <!-- Inventory -->
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">📦 Inventory</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="headers-inventory">
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">ItemID</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">ItemName</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Category</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Unit</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">CurrentStock</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">MinStockLevel</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">LastUpdated</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Inventory','ItemID\tItemName\tCategory\tUnit\tCurrentStock\tMinStockLevel\tLastUpdated')">📋 Copy</button>
+    </div>
+
+    <!-- StockReceived -->
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">📥 StockReceived</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Date</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">ItemID</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">ItemName</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Quantity</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Unit</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Source</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Supplier</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">CostPerUnit</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">TotalCost</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">RecordedBy</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('StockReceived','Date\tItemID\tItemName\tQuantity\tUnit\tSource\tSupplier\tCostPerUnit\tTotalCost\tRecordedBy')">📋 Copy</button>
+    </div>
+
+    <!-- StockUsage -->
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">📤 StockUsage</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Date</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">ItemID</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">ItemName</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">QuantityUsed</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Unit</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">RecordedBy</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Notes</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('StockUsage','Date\tItemID\tItemName\tQuantityUsed\tUnit\tRecordedBy\tNotes')">📋 Copy</button>
+    </div>
+
+    <!-- Expenses -->
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">💸 Expenses</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Date</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Category</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Description</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Amount</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">PaymentMethod</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Vendor</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">RecordedBy</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Notes</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Expenses','Date\tCategory\tDescription\tAmount\tPaymentMethod\tVendor\tRecordedBy\tNotes')">📋 Copy</button>
+    </div>
+
+    <!-- Income -->
+    <div>
+      <div style="font-weight:700;color:var(--brown);font-size:0.9rem;margin-bottom:6px;">💰 Income</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Date</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Cash</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Card</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">UPI</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Zomato</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Swiggy</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Others</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">TotalIncome</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">RecordedBy</span>
+        <span style="background:var(--orange-pale);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:0.8rem;font-family:monospace;color:var(--brown-dark);">Notes</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="copyHeaders('Income','Date\tCash\tCard\tUPI\tZomato\tSwiggy\tOthers\tTotalIncome\tRecordedBy\tNotes')">📋 Copy</button>
+    </div>
+  </div>
+
+  <!-- Setup Instructions -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;"><span class="icon">📖</span> How to Set Up Google Sheets</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Create a Google Spreadsheet</h4>
+          <p>Go to <strong>sheets.google.com</strong> and create a new spreadsheet. Name it "Restaurant Operations".</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Create 5 Sheet Tabs</h4>
+          <p>Create tabs named exactly: <code>Inventory</code>, <code>StockReceived</code>, <code>StockUsage</code>, <code>Expenses</code>, <code>Income</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Add Column Headers</h4>
+          <p>In each sheet, add the headers in Row 1 exactly as shown in the "Column Headers" section above. The app will read/write from Row 2 onwards.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Open Apps Script Editor</h4>
+          <p>In your spreadsheet, go to <strong>Extensions → Apps Script</strong>. Delete any existing code.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Paste the Apps Script Code</h4>
+          <p>Copy the complete code from the section below and paste it into the Apps Script editor.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h4>Deploy as Web App</h4>
+          <p>Click <strong>Deploy → New deployment</strong>. Set type to <strong>Web app</strong>. Set "Execute as" to <strong>Me</strong> and "Who has access" to <strong>Anyone</strong>. Click Deploy and copy the URL.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <h4>Paste URL Above</h4>
+          <p>Paste the Web App URL in the configuration field above and click Save URL.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apps Script Code -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px;"><span class="icon">📋</span> Google Apps Script Code</div>
+    <div style="margin-bottom:8px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="copyAppsScript()">📋 Copy Code</button>
+    </div>
+    <div class="collapsible-header" onclick="toggleCollapsible(this)" data-ocid="settings.apps_script.toggle">
+      <span>View Complete Apps Script Code</span>
+      <span>▼</span>
+    </div>
+    <div class="collapsible-content" id="appsScriptContent">
+      <div class="code-block" id="appsScriptCode"></div>
+    </div>
+  </div>
+
+  <!-- Demo Data Reset -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;"><span class="icon">🔄</span> Demo Data</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">Reset demo data to the original sample dataset. This will erase any changes made in Demo Mode.</p>
+    <button type="button" class="btn btn-danger btn-sm" data-ocid="settings.reset_demo.button" onclick="resetDemoData()">🔄 Reset Demo Data</button>
+  </div>
+</div>
+
+<!-- Bottom Tab Navigation -->
+<nav class="tab-nav" id="tabNav">
+  <button type="button" class="tab-btn active" data-ocid="nav.inventory.tab" onclick="switchTab('inventory')">
+    <span class="tab-icon">📦</span>
+    <span class="tab-label">Inventory</span>
+  </button>
+  <button type="button" class="tab-btn" data-ocid="nav.expenses.tab" onclick="switchTab('expenses')">
+    <span class="tab-icon">💸</span>
+    <span class="tab-label">Expenses</span>
+  </button>
+  <button type="button" class="tab-btn" data-ocid="nav.income.tab" onclick="switchTab('income')">
+    <span class="tab-icon">💰</span>
+    <span class="tab-label">Income</span>
+  </button>
+  <button type="button" class="tab-btn" data-ocid="nav.owner.tab" onclick="switchTab('owner')">
+    <span class="tab-icon">📊</span>
+    <span class="tab-label">Owner</span>
+  </button>
+  <button type="button" class="tab-btn" data-ocid="nav.settings.tab" onclick="switchTab('settings')">
+    <span class="tab-icon">⚙️</span>
+    <span class="tab-label">Settings</span>
+  </button>
+</nav>
+
+<script>
+// ================================================================
+//  CONSTANTS & CONFIGURATION
+// ================================================================
+const SHEETS_URL_KEY = 'rom_sheets_url';
+const PIN_KEY        = 'rom_owner_pin';
+const SESSION_KEY    = 'rom_owner_session';
+const DEMO_KEY       = 'rom_demo_';
+
+// Categories restricted to Owner Dashboard only (hidden from public Expenses tab)
+const OWNER_ONLY_CATEGORIES = ['Salaries', 'Rent', 'Loan Repayment', 'Owner Withdrawal'];
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let currentTab = 'inventory';
+let pinBuffer  = '';
+
+// ================================================================
+//  UTILITY
+// ================================================================
+function fmt(n)  { return '₹' + Number(n||0).toLocaleString('en-IN', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(d){ return d ? d.substring(0,10) : ''; }
+function today() { return new Date().toISOString().substring(0,10); }
+
+function showLoading()  { document.getElementById('loadingOverlay').classList.add('visible'); }
+function hideLoading()  { document.getElementById('loadingOverlay').classList.remove('visible'); }
+
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  const c = document.getElementById('toastContainer');
+  c.appendChild(el);
+  setTimeout(() => { el.style.transition='opacity 0.4s'; el.style.opacity='0'; setTimeout(()=>el.remove(),400); }, 3200);
+}
+
+function resetForm(id) { document.getElementById(id).reset(); }
+
+function toggleCollapsible(header) {
+  const content = header.nextElementSibling;
+  content.classList.toggle('open');
+  header.querySelector('span:last-child').textContent = content.classList.contains('open') ? '▲' : '▼';
+}
+
+// ================================================================
+//  TAB NAVIGATION
+// ================================================================
+function switchTab(name) {
+  currentTab = name;
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.toggle('active', b.dataset.ocid === `nav.${name}.tab`); });
+  document.querySelectorAll('.tab-content').forEach(t => { t.classList.toggle('active', t.id === `tab-${name}`); });
+  if (name === 'owner') initOwnerTab();
+}
+
+// ================================================================
+//  GOOGLE SHEETS / DEMO DATA LAYER
+// ================================================================
+function getSheetUrl() { return localStorage.getItem(SHEETS_URL_KEY) || ''; }
+function isDemo()      { return !getSheetUrl(); }
+
+async function apiGet(action, params={}) {
+  if (isDemo()) return demoGet(action, params);
+  const url = new URL(getSheetUrl());
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v]) => { url.searchParams.set(k,v); });
+  const res = await fetch(url.toString(), { method:'GET' });
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch(e) { throw new Error('Invalid response from server. Check your Apps Script URL.'); }
+}
+
+async function apiPost(action, body={}) {
+  if (isDemo()) return demoPost(action, body);
+  // Google Apps Script requires form-encoded POST to avoid CORS preflight failure
+  const payload = JSON.stringify({ action, ...body });
+  const res = await fetch(getSheetUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'data=' + encodeURIComponent(payload)
+  });
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch(e) { throw new Error('Invalid response from server. Check your Apps Script URL.'); }
+}
+
+// ================================================================
+//  DEMO MODE DATA LAYER
+// ================================================================
+const DEMO_SHEETS = ['Inventory','StockReceived','StockUsage','Expenses','Income'];
+
+function demoKey(sheet) { return DEMO_KEY + sheet; }
+
+function demoLoad(sheet) {
+  const raw = localStorage.getItem(demoKey(sheet));
+  return raw ? JSON.parse(raw) : [];
+}
+
+function demoSave(sheet, data) {
+  localStorage.setItem(demoKey(sheet), JSON.stringify(data));
+}
+
+function resetDemoData() {
+  if (!confirm('Reset all demo data to defaults?')) return;
+  DEMO_SHEETS.forEach(s => { localStorage.removeItem(demoKey(s)); });
+  seedDemoData();
+  toast('Demo data reset successfully', 'success');
+  loadInventory();
+}
+
+function seedDemoData() {
+  if (localStorage.getItem(demoKey('Inventory'))) return; // already seeded
+  const today_ = today();
+  const d1 = offsetDate(-2), d2 = offsetDate(-5), d3 = offsetDate(-10);
+
+  demoSave('Inventory', [
+    { ItemID:'I001', ItemName:'Chicken', Category:'Protein', Unit:'kg', CurrentStock:15, MinStockLevel:5, LastUpdated:today_ },
+    { ItemID:'I002', ItemName:'Cooking Oil', Category:'Oil & Fat', Unit:'L', CurrentStock:8, MinStockLevel:10, LastUpdated:today_ },
+    { ItemID:'I003', ItemName:'Onion', Category:'Vegetables', Unit:'kg', CurrentStock:20, MinStockLevel:8, LastUpdated:today_ },
+    { ItemID:'I004', ItemName:'Tomato', Category:'Vegetables', Unit:'kg', CurrentStock:3, MinStockLevel:5, LastUpdated:today_ },
+    { ItemID:'I005', ItemName:'Rice (Basmati)', Category:'Grains', Unit:'kg', CurrentStock:50, MinStockLevel:15, LastUpdated:today_ },
+    { ItemID:'I006', ItemName:'Milk', Category:'Dairy', Unit:'L', CurrentStock:12, MinStockLevel:5, LastUpdated:today_ },
+    { ItemID:'I007', ItemName:'Butter', Category:'Dairy', Unit:'kg', CurrentStock:2, MinStockLevel:1, LastUpdated:today_ },
+    { ItemID:'I008', ItemName:'Salt', Category:'Spices', Unit:'kg', CurrentStock:4, MinStockLevel:1, LastUpdated:today_ },
+    { ItemID:'I009', ItemName:'Paneer', Category:'Protein', Unit:'kg', CurrentStock:0.5, MinStockLevel:2, LastUpdated:today_ },
+    { ItemID:'I010', ItemName:'Maida', Category:'Grains', Unit:'kg', CurrentStock:25, MinStockLevel:10, LastUpdated:today_ },
+  ]);
+
+  demoSave('StockReceived', [
+    { Date:d1, ItemID:'I001', ItemName:'Chicken', Quantity:20, Unit:'kg', Source:'Bulk Delivery', Supplier:'Fresh Farms', CostPerUnit:220, TotalCost:4400, RecordedBy:'Ravi' },
+    { Date:d2, ItemID:'I005', ItemName:'Rice (Basmati)', Quantity:50, Unit:'kg', Source:'Bulk Delivery', Supplier:'Agro Traders', CostPerUnit:85, TotalCost:4250, RecordedBy:'Suresh' },
+    { Date:d3, ItemID:'I003', ItemName:'Onion', Quantity:25, Unit:'kg', Source:'Retail Purchase', Supplier:'Veggie Mart', CostPerUnit:28, TotalCost:700, RecordedBy:'Priya' },
+  ]);
+
+  demoSave('StockUsage', [
+    { Date:today_, ItemID:'I001', ItemName:'Chicken', QuantityUsed:5, Unit:'kg', RecordedBy:'Ravi', Notes:'Dinner service' },
+    { Date:today_, ItemID:'I003', ItemName:'Onion', QuantityUsed:2, Unit:'kg', RecordedBy:'Ravi', Notes:'' },
+    { Date:d1, ItemID:'I001', ItemName:'Chicken', QuantityUsed:4, Unit:'kg', RecordedBy:'Suresh', Notes:'Lunch' },
+  ]);
+
+  demoSave('Expenses', [
+    { Date:offsetDate(-1), Category:'Utilities', Description:'Electricity bill', Amount:4200, PaymentMethod:'Bank Transfer', Vendor:'BESCOM', RecordedBy:'Owner', Notes:'' },
+    { Date:d1, Category:'Groceries', Description:'Vegetable purchase', Amount:1800, PaymentMethod:'Cash', Vendor:'Local Market', RecordedBy:'Ravi', Notes:'' },
+    { Date:d3, Category:'Retail Purchase', Description:'Onion purchase', Amount:700, PaymentMethod:'Cash', Vendor:'Veggie Mart', RecordedBy:'Priya', Notes:'Auto from stock' },
+    { Date:offsetDate(-15), Category:'Maintenance', Description:'Kitchen equipment repair', Amount:3500, PaymentMethod:'Cash', Vendor:'Fix-It Services', RecordedBy:'Owner', Notes:'' },
+    { Date:offsetDate(-20), Category:'Marketing', Description:'Flyer printing', Amount:1200, PaymentMethod:'UPI', Vendor:'Print Hub', RecordedBy:'Owner', Notes:'' },
+    // Owner-only expenses (private, not shown on public Expenses tab)
+    { Date:offsetDate(-1), Category:'Salaries', Description:'Monthly staff salaries', Amount:35000, PaymentMethod:'Bank Transfer', Vendor:'', RecordedBy:'Owner', Notes:'3 full-time staff' },
+    { Date:offsetDate(-5), Category:'Rent', Description:'Monthly rent', Amount:25000, PaymentMethod:'Bank Transfer', Vendor:'Landlord', RecordedBy:'Owner', Notes:'' },
+  ]);
+
+  // Build income for last 10 days
+  const incomeData = [];
+  for (let i=0; i<10; i++) {
+    const d = offsetDate(-i);
+    incomeData.push({
+      Date:d, Cash:Math.round(2000+Math.random()*3000), Card:Math.round(1000+Math.random()*2000),
+      UPI:Math.round(800+Math.random()*1500), Zomato:Math.round(500+Math.random()*1200),
+      Swiggy:Math.round(300+Math.random()*800), Others:0,
+      TotalIncome:0, RecordedBy:'Staff', Notes:''
+    });
+    const inc = incomeData[incomeData.length-1];
+    inc.TotalIncome = inc.Cash+inc.Card+inc.UPI+inc.Zomato+inc.Swiggy+inc.Others;
+  }
+  demoSave('Income', incomeData);
+}
+
+function offsetDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().substring(0,10);
+}
+
+// Demo GET handler
+function demoGet(action, params) {
+  switch(action) {
+    case 'getInventory': return { data: demoLoad('Inventory') };
+    case 'getStockReceived': return { data: demoLoad('StockReceived') };
+    case 'getStockUsage': return { data: demoLoad('StockUsage') };
+    case 'getExpenses': return { data: demoLoad('Expenses') };
+    case 'getIncome': return { data: demoLoad('Income') };
+    default: return { data: [] };
+  }
+}
+
+// Demo POST handler
+function demoPost(action, body) {
+  switch(action) {
+    case 'addStockReceived': {
+      const rows = demoLoad('StockReceived');
+      rows.unshift(body.row);
+      demoSave('StockReceived', rows);
+      // Update inventory
+      const inv = demoLoad('Inventory');
+      const idx = inv.findIndex(i => i.ItemID === body.row.ItemID);
+      if (idx >= 0) {
+        inv[idx].CurrentStock = Number(inv[idx].CurrentStock) + Number(body.row.Quantity);
+        inv[idx].LastUpdated = body.row.Date;
+      }
+      demoSave('Inventory', inv);
+      return { success: true };
+    }
+    case 'addStockUsage': {
+      const rows = demoLoad('StockUsage');
+      body.rows.forEach(r => { rows.unshift(r); });
+      demoSave('StockUsage', rows);
+      // Update inventory
+      const inv = demoLoad('Inventory');
+      body.rows.forEach(r => {
+        const idx = inv.findIndex(i => i.ItemID === r.ItemID);
+        if (idx >= 0) {
+          inv[idx].CurrentStock = Math.max(0, Number(inv[idx].CurrentStock) - Number(r.QuantityUsed));
+          inv[idx].LastUpdated = r.Date;
+        }
+      });
+      demoSave('Inventory', inv);
+      return { success: true };
+    }
+    case 'addExpense': {
+      const rows = demoLoad('Expenses');
+      rows.unshift(body.row);
+      demoSave('Expenses', rows);
+      return { success: true };
+    }
+    case 'addIncome': {
+      const rows = demoLoad('Income');
+      rows.unshift(body.row);
+      demoSave('Income', rows);
+      return { success: true };
+    }
+    case 'addInventoryItem': {
+      const inv = demoLoad('Inventory');
+      inv.push(body.row);
+      demoSave('Inventory', inv);
+      return { success: true };
+    }
+    default: return { success: false, error: 'Unknown action' };
+  }
+}
+
+// ================================================================
+//  INVENTORY TAB
+// ================================================================
+async function loadInventory() {
+  try {
+    showLoading();
+    const res = await apiGet('getInventory');
+    renderInventoryTable(res.data || []);
+    populateItemDropdowns(res.data || []);
+  } catch(e) {
+    toast('Error loading inventory: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+  loadRecentMovements();
+}
+
+function renderInventoryTable(items) {
+  const container = document.getElementById('inventoryTableBody');
+  if (!items.length) {
+    container.innerHTML = '<div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">No inventory items found.</div>';
+    return;
+  }
+  container.innerHTML = items.map(item => {
+    const stock = Number(item.CurrentStock);
+    const min   = Number(item.MinStockLevel);
+    let badgeClass = 'badge-green', statusText = 'Good';
+    if (stock <= 0) { badgeClass = 'badge-red'; statusText = 'Out of Stock'; }
+    else if (stock < min) { badgeClass = 'badge-red'; statusText = 'Below Min'; }
+    else if (stock < min * 1.3) { badgeClass = 'badge-yellow'; statusText = 'Low'; }
+    return `<div class="item-card">
+      <div class="item-card-header">
+        <div>
+          <div class="item-card-name">${item.ItemName}</div>
+          <div class="item-card-sub">${item.Category||''}</div>
+        </div>
+        <span class="badge ${badgeClass}">${statusText}</span>
+      </div>
+      <div class="item-card-meta">
+        <span>📦 <strong>${stock} ${item.Unit||''}</strong></span>
+        <span style="color:var(--text-muted);">Min: ${min} ${item.Unit||''}</span>
+        <span style="margin-left:auto;font-size:0.75rem;">${fmtDate(item.LastUpdated)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function populateItemDropdowns(items) {
+  const opts = '<option value="">-- Select Item --</option>' +
+    items.map(i => `<option value="${i.ItemID}" data-unit="${i.Unit||''}" data-name="${i.ItemName}">${i.ItemName}${i.Unit ? ' (' + i.Unit + ')' : ''}</option>`).join('');
+  // Populate stock received item select
+  const srItem = document.getElementById('sr-item');
+  if (srItem) srItem.innerHTML = opts;
+  // Update all existing usage row selects
+  document.querySelectorAll('.usage-item-select').forEach(sel => {
+    const val = sel.value;
+    sel.innerHTML = opts;
+    sel.value = val;
+  });
+  window._inventoryItems = items;
+}
+
+async function submitAddItem(e) {
+  e.preventDefault();
+  const name  = document.getElementById('ai-name').value.trim();
+  const cat   = document.getElementById('ai-category').value.trim();
+  const unit  = document.getElementById('ai-unit').value.trim();
+  const stock = parseFloat(document.getElementById('ai-stock').value) || 0;
+  const min   = parseFloat(document.getElementById('ai-min').value) || 0;
+  // Generate a simple ID
+  const items = window._inventoryItems || [];
+  const existingNums = items.map(i => parseInt((i.ItemID||'I000').replace(/\D/g,''))||0);
+  const nextNum = (existingNums.length ? Math.max(...existingNums) : 0) + 1;
+  const itemID = 'I' + String(nextNum).padStart(3, '0');
+  const row = {
+    ItemID: itemID,
+    ItemName: name,
+    Category: cat,
+    Unit: unit,
+    CurrentStock: stock,
+    MinStockLevel: min,
+    LastUpdated: today()
+  };
+  try {
+    showLoading();
+    await apiPost('addInventoryItem', { row });
+    toast(`"${name}" added to inventory!`, 'success');
+    document.getElementById('addItemForm').reset();
+    document.getElementById('ai-stock').value = '0';
+    document.getElementById('ai-min').value = '0';
+    loadInventory();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function fillSrUnit() {
+  const sel = document.getElementById('sr-item');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.dataset.unit) document.getElementById('sr-unit').value = opt.dataset.unit;
+}
+
+function calcStockTotal() {
+  const qty = parseFloat(document.getElementById('sr-qty').value)||0;
+  const cpu = parseFloat(document.getElementById('sr-cpu').value)||0;
+  document.getElementById('sr-total').value = (qty * cpu).toFixed(2);
+}
+
+async function submitStockReceived(e) {
+  e.preventDefault();
+  const sel = document.getElementById('sr-item');
+  const opt = sel.options[sel.selectedIndex];
+  const itemName = opt ? opt.dataset.name : '';
+  const row = {
+    Date: document.getElementById('sr-date').value,
+    ItemID: sel.value,
+    ItemName: itemName,
+    Quantity: parseFloat(document.getElementById('sr-qty').value),
+    Unit: document.getElementById('sr-unit').value,
+    Source: document.getElementById('sr-source').value,
+    Supplier: document.getElementById('sr-supplier').value,
+    CostPerUnit: parseFloat(document.getElementById('sr-cpu').value)||0,
+    TotalCost: parseFloat(document.getElementById('sr-total').value)||0,
+    RecordedBy: document.getElementById('sr-by').value,
+  };
+  try {
+    showLoading();
+    await apiPost('addStockReceived', { row });
+    // Auto-create expense for Retail Purchase
+    if (row.Source === 'Retail Purchase' && row.TotalCost > 0) {
+      await apiPost('addExpense', { row: {
+        Date: row.Date,
+        Category: 'Retail Purchase',
+        Description: `Stock purchase: ${row.ItemName}`,
+        Amount: row.TotalCost,
+        PaymentMethod: 'Cash',
+        Vendor: row.Supplier,
+        RecordedBy: row.RecordedBy,
+        Notes: 'Auto-generated from stock receipt'
+      }});
+      toast('Stock received recorded + Expense auto-created for Retail Purchase', 'success');
+    } else {
+      toast('Stock received recorded successfully!', 'success');
+    }
+    document.getElementById('stockReceivedForm').reset();
+    loadInventory();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// Usage rows
+let usageRowCount = 0;
+function addUsageRow() {
+  usageRowCount++;
+  const items = (window._inventoryItems || []);
+  const opts = '<option value="">-- Select Item --</option>' +
+    items.map(i => `<option value="${i.ItemID}" data-unit="${i.Unit}" data-name="${i.ItemName}">${i.ItemName} (${i.Unit})</option>`).join('');
+  const row = document.createElement('div');
+  row.className = 'usage-row';
+  row.id = `usageRow${usageRowCount}`;
+  row.innerHTML = `
+    <div class="usage-row-top">
+      <select class="usage-item-select" data-ocid="usage.item.select.${usageRowCount}">${opts}</select>
+      <input type="number" class="usage-qty-input" data-ocid="usage.qty.input.${usageRowCount}" placeholder="Qty" min="0.01" step="0.01">
+      <button type="button" class="btn btn-secondary btn-sm usage-remove" data-ocid="usage.remove.button.${usageRowCount}" onclick="removeUsageRow(${usageRowCount})">✕</button>
+    </div>
+    <input type="text" class="usage-notes-input" data-ocid="usage.notes.input.${usageRowCount}" placeholder="Notes (optional)">
+  `;
+  document.getElementById('usageRows').appendChild(row);
+}
+
+function removeUsageRow(id) {
+  const el = document.getElementById(`usageRow${id}`);
+  if (el) el.remove();
+}
+
+async function submitUsage() {
+  const date = document.getElementById('usage-date').value || today();
+  const by   = document.getElementById('usage-by').value;
+  const rows = [];
+  document.querySelectorAll('.usage-row').forEach(row => {
+    const sel = row.querySelector('.usage-item-select');
+    const qty = parseFloat(row.querySelector('.usage-qty-input').value);
+    const notes = row.querySelector('.usage-notes-input').value;
+    if (!sel.value || !qty) return;
+    const opt = sel.options[sel.selectedIndex];
+    rows.push({ Date:date, ItemID:sel.value, ItemName:opt.dataset.name||'', QuantityUsed:qty, Unit:opt.dataset.unit||'', RecordedBy:by, Notes:notes });
+  });
+  if (!rows.length) { toast('Please add at least one item with a quantity.', 'warning'); return; }
+  try {
+    showLoading();
+    await apiPost('addStockUsage', { rows });
+    toast(`${rows.length} usage record(s) saved!`, 'success');
+    document.getElementById('usageRows').innerHTML = '';
+    document.getElementById('usage-date').value = '';
+    document.getElementById('usage-by').value = '';
+    usageRowCount = 0;
+    loadInventory();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function loadRecentMovements() {
+  try {
+    const [sr, su] = await Promise.all([apiGet('getStockReceived'), apiGet('getStockUsage')]);
+    const cutoff = offsetDate(-7);
+    const movements = [
+      ...(sr.data||[]).filter(r => r.Date >= cutoff).map(r => ({...r, type:'IN', color:'var(--green)'})),
+      ...(su.data||[]).filter(r => r.Date >= cutoff).map(r => ({...r, type:'OUT', qty:r.QuantityUsed, color:'var(--orange)'})),
+    ].sort((a,b) => (b.Date||'').localeCompare(a.Date||''));
+    const el = document.getElementById('recentMovements');
+    if (!movements.length) { el.innerHTML = '<p class="table-empty">No stock movements in the last 7 days.</p>'; return; }
+    el.innerHTML = movements.map(m => `
+      <div class="movement-item">
+        <div>
+          <div style="font-weight:600;">${m.ItemName||''}</div>
+          <div class="movement-date">${m.Date} · ${m.RecordedBy||''}</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="movement-type" style="color:${m.color};">${m.type==='IN'?'▲ IN':'▼ OUT'}</span>
+          <div style="font-weight:700;">${m.type==='IN'?m.Quantity:m.QuantityUsed} ${m.Unit||''}</div>
+        </div>
+      </div>`).join('');
+  } catch(e) { /* silent */ }
+}
+
+// ================================================================
+//  EXPENSES TAB
+// ================================================================
+async function loadExpenses() {
+  try {
+    showLoading();
+    const res = await apiGet('getExpenses');
+    renderExpenses(res.data || []);
+  } catch(e) {
+    toast('Error loading expenses: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderExpenses(data) {
+  const cutoff = offsetDate(-30);
+  // Exclude owner-only categories from the public expenses view
+  const recent = data.filter(r => r.Date >= cutoff && !OWNER_ONLY_CATEGORIES.includes(r.Category)).sort((a,b)=>(b.Date||'').localeCompare(a.Date||''));
+  const container = document.getElementById('expenseTableBody');
+  const totalAmt = recent.reduce((s,r)=>s+Number(r.Amount||0),0);
+  // Stats
+  const cats = {};
+  recent.forEach(r => { cats[r.Category] = (cats[r.Category]||0)+Number(r.Amount||0); });
+  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('expenseSummaryStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total (30 days)</div><div class="stat-value red">${fmt(totalAmt)}</div></div>
+    <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value">${recent.length}</div></div>
+    ${topCat?`<div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value orange" style="font-size:1rem;">${topCat[0]}</div></div>`:''}
+  `;
+  if (!recent.length) {
+    container.innerHTML = '<div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">No expenses in last 30 days.</div>';
+    return;
+  }
+  container.innerHTML = recent.map(r => `
+    <div class="item-card">
+      <div class="item-card-header">
+        <div>
+          <div class="item-card-name">${r.Description||''}</div>
+          <div class="item-card-sub">${r.Date}</div>
+        </div>
+        <div class="item-card-amount">${fmt(r.Amount)}</div>
+      </div>
+      <div class="item-card-meta">
+        <span class="badge badge-gray">${r.Category||''}</span>
+        ${r.PaymentMethod ? `<span>💳 ${r.PaymentMethod}</span>` : ''}
+        ${r.Vendor ? `<span>🏪 ${r.Vendor}</span>` : ''}
+      </div>
+    </div>`).join('') +
+    `<div class="item-card" style="background:var(--orange-pale);border-color:var(--orange);">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;">
+        <span>Total (30 days)</span>
+        <span style="font-size:1.1rem;color:var(--orange);">${fmt(totalAmt)}</span>
+      </div>
+    </div>`;
+}
+
+async function submitExpense(e) {
+  e.preventDefault();
+  const row = {
+    Date: document.getElementById('exp-date').value,
+    Category: document.getElementById('exp-cat').value,
+    Description: document.getElementById('exp-desc').value,
+    Amount: parseFloat(document.getElementById('exp-amount').value),
+    PaymentMethod: document.getElementById('exp-pay').value,
+    Vendor: document.getElementById('exp-vendor').value,
+    RecordedBy: document.getElementById('exp-by').value,
+    Notes: document.getElementById('exp-notes').value,
+  };
+  try {
+    showLoading();
+    await apiPost('addExpense', { row });
+    toast('Expense recorded successfully!', 'success');
+    document.getElementById('expenseForm').reset();
+    loadExpenses();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ================================================================
+//  INCOME TAB
+// ================================================================
+let _incomeData = [];
+
+function calcIncomeTotal() {
+  const ids = ['inc-cash','inc-card','inc-upi','inc-zomato','inc-swiggy','inc-others'];
+  const total = ids.reduce((s,id) => s + (parseFloat(document.getElementById(id).value)||0), 0);
+  document.getElementById('incomeTotal').textContent = fmt(total);
+}
+
+function checkIncomeDuplicate() {
+  const date = document.getElementById('inc-date').value;
+  const exists = _incomeData.some(r => r.Date === date);
+  document.getElementById('incomeDuplicateAlert').style.display = exists ? 'flex' : 'none';
+}
+
+function clearIncomeForm() {
+  ['inc-date','inc-by','inc-cash','inc-card','inc-upi','inc-zomato','inc-swiggy','inc-others','inc-others-desc','inc-notes']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('incomeTotal').textContent = '₹0.00';
+  document.getElementById('incomeDuplicateAlert').style.display = 'none';
+}
+
+async function loadIncome() {
+  try {
+    showLoading();
+    const res = await apiGet('getIncome');
+    _incomeData = res.data || [];
+    renderIncome7Days(_incomeData);
+  } catch(e) {
+    toast('Error loading income: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function toggleIncomeDay(card) {
+  card.classList.toggle('open');
+}
+
+function renderIncome7Days(data) {
+  const cutoff = offsetDate(-7);
+  const recent = data.filter(r => r.Date >= cutoff).sort((a,b)=>(b.Date||'').localeCompare(a.Date||''));
+  const container = document.getElementById('incomeTableBody');
+  if (!recent.length) {
+    container.innerHTML = '<div class="item-card" style="text-align:center;color:var(--text-muted);padding:28px;">No income recorded in last 7 days.</div>';
+    return;
+  }
+  const totals = {Cash:0,Card:0,UPI:0,Zomato:0,Swiggy:0,Others:0,TotalIncome:0};
+  recent.forEach(r => { ['Cash','Card','UPI','Zomato','Swiggy','Others','TotalIncome'].forEach(k=>{ totals[k]+=Number(r[k]||0); }); });
+
+  const channels = [
+    {key:'Cash', icon:'💵'},
+    {key:'Card', icon:'💳'},
+    {key:'UPI', icon:'📱'},
+    {key:'Zomato', icon:'🛵'},
+    {key:'Swiggy', icon:'🛴'},
+    {key:'Others', icon:'➕'},
+  ];
+
+  container.innerHTML = recent.map(r => {
+    const channelRows = channels.map(ch => {
+      const val = Number(r[ch.key]||0);
+      if (val <= 0) return '';
+      return `<div class="icb-row"><span class="icb-label">${ch.icon} ${ch.key}</span><span class="icb-val">${fmt(val)}</span></div>`;
+    }).filter(Boolean).join('');
+    return `<div class="income-day-card" onclick="toggleIncomeDay(this)">
+      <div class="income-day-header">
+        <div class="income-day-date">📅 ${r.Date}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="income-day-total">${fmt(r.TotalIncome)}</span>
+          <span class="income-day-chevron">▼</span>
+        </div>
+      </div>
+      <div class="income-day-body">
+        <div class="income-channel-breakdown">${channelRows}</div>
+      </div>
+    </div>`;
+  }).join('') +
+  `<div class="income-day-card" style="background:var(--green-light);border-color:var(--green);">
+    <div class="income-day-header" style="cursor:default;">
+      <span style="font-weight:800;color:var(--green);">7-Day Total</span>
+      <span class="income-day-total">${fmt(totals.TotalIncome)}</span>
+    </div>
+  </div>`;
+}
+
+async function submitIncome() {
+  const date = document.getElementById('inc-date').value;
+  if (!date) { toast('Please select a date', 'warning'); return; }
+  const cash   = parseFloat(document.getElementById('inc-cash').value)||0;
+  const card   = parseFloat(document.getElementById('inc-card').value)||0;
+  const upi    = parseFloat(document.getElementById('inc-upi').value)||0;
+  const zomato = parseFloat(document.getElementById('inc-zomato').value)||0;
+  const swiggy = parseFloat(document.getElementById('inc-swiggy').value)||0;
+  const others = parseFloat(document.getElementById('inc-others').value)||0;
+  const total  = cash+card+upi+zomato+swiggy+others;
+  if (total <= 0) { toast('Please enter at least one income amount', 'warning'); return; }
+  const row = {
+    Date:date, Cash:cash, Card:card, UPI:upi, Zomato:zomato, Swiggy:swiggy, Others:others,
+    TotalIncome:total,
+    RecordedBy: document.getElementById('inc-by').value,
+    Notes: document.getElementById('inc-notes').value
+  };
+  try {
+    showLoading();
+    await apiPost('addIncome', { row });
+    toast('Income recorded successfully!', 'success');
+    clearIncomeForm();
+    loadIncome();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ================================================================
+//  OWNER EXPENSES (private, PIN-protected)
+// ================================================================
+async function loadOwnerExpenses() {
+  try {
+    const res = await apiGet('getExpenses');
+    renderOwnerExpenseList(res.data || []);
+  } catch(e) { /* silent */ }
+}
+
+function renderOwnerExpenseList(data) {
+  const cutoff = offsetDate(-60);
+  const recent = data
+    .filter(r => OWNER_ONLY_CATEGORIES.includes(r.Category) && r.Date >= cutoff)
+    .sort((a,b) => (b.Date||'').localeCompare(a.Date||''));
+  const el = document.getElementById('ownerExpenseList');
+  if (!recent.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;padding:16px 0;">No owner expenses in last 60 days.</p>';
+    return;
+  }
+  const total = recent.reduce((s,r) => s + Number(r.Amount||0), 0);
+  el.innerHTML = recent.map(r => `
+    <div class="item-card">
+      <div class="item-card-header">
+        <div>
+          <div class="item-card-name">${r.Description||''}</div>
+          <div class="item-card-sub">${r.Date}</div>
+        </div>
+        <div class="item-card-amount">${fmt(r.Amount)}</div>
+      </div>
+      <div class="item-card-meta">
+        <span class="badge badge-blue">${r.Category||''}</span>
+        ${r.PaymentMethod ? `<span>💳 ${r.PaymentMethod}</span>` : ''}
+        ${r.Notes ? `<span style="font-size:0.78rem;color:var(--text-muted);">${r.Notes}</span>` : ''}
+      </div>
+    </div>`).join('') +
+    `<div class="item-card" style="background:var(--orange-pale);border-color:var(--orange);">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;">
+        <span>Total (60 days)</span>
+        <span style="font-size:1.1rem;color:var(--orange);">${fmt(total)}</span>
+      </div>
+    </div>`;
+}
+
+async function submitOwnerExpense(e) {
+  e.preventDefault();
+  const row = {
+    Date: document.getElementById('oexp-date').value,
+    Category: document.getElementById('oexp-cat').value,
+    Description: document.getElementById('oexp-desc').value,
+    Amount: parseFloat(document.getElementById('oexp-amount').value),
+    PaymentMethod: document.getElementById('oexp-pay').value,
+    Vendor: '',
+    RecordedBy: 'Owner',
+    Notes: document.getElementById('oexp-notes').value,
+  };
+  try {
+    showLoading();
+    await apiPost('addExpense', { row });
+    toast('Owner expense recorded!', 'success');
+    document.getElementById('ownerExpenseForm').reset();
+    document.getElementById('oexp-date').value = today();
+    loadOwnerExpenses();
+    loadOwnerDashboard();
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ================================================================
+//  OWNER / PIN
+// ================================================================
+function initOwnerTab() {
+  // Check session
+  const session = sessionStorage.getItem(SESSION_KEY);
+  if (session === 'authenticated') {
+    showOwnerContent();
+  } else {
+    document.getElementById('ownerPinScreen').style.display = 'block';
+    document.getElementById('ownerContent').style.display = 'none';
+  }
+}
+
+function pinInput(digit) {
+  if (pinBuffer.length >= 6) return;
+  pinBuffer += digit;
+  updatePinDisplay();
+  if (pinBuffer.length >= 4) {
+    setTimeout(() => checkPin(), 100);
+  }
+}
+
+function pinBackspace() {
+  pinBuffer = pinBuffer.slice(0,-1);
+  updatePinDisplay();
+}
+
+function pinClear() {
+  pinBuffer = '';
+  updatePinDisplay();
+  document.getElementById('pinError').textContent = '';
+}
+
+function updatePinDisplay() {
+  for (let i=0; i<4; i++) {
+    document.getElementById(`pd${i}`).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function checkPin() {
+  const stored = localStorage.getItem(PIN_KEY) || '1234';
+  if (pinBuffer === stored) {
+    sessionStorage.setItem(SESSION_KEY, 'authenticated');
+    pinBuffer = '';
+    updatePinDisplay();
+    showOwnerContent();
+  } else if (pinBuffer.length >= 4) {
+    document.getElementById('pinError').textContent = 'Incorrect PIN. Try again.';
+    pinBuffer = '';
+    updatePinDisplay();
+    setTimeout(()=>{ document.getElementById('pinError').textContent=''; }, 2000);
+  }
+}
+
+function showOwnerContent() {
+  document.getElementById('ownerPinScreen').style.display = 'none';
+  document.getElementById('ownerContent').style.display = 'block';
+  document.getElementById('oexp-date').value = today();
+  initOwnerSelectors();
+  loadOwnerDashboard();
+  loadOwnerExpenses();
+}
+
+function ownerLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('ownerPinScreen').style.display = 'block';
+  document.getElementById('ownerContent').style.display = 'none';
+  pinBuffer = '';
+  updatePinDisplay();
+}
+
+function initOwnerSelectors() {
+  const now = new Date();
+  const monthSel = document.getElementById('owner-month');
+  const yearSel  = document.getElementById('owner-year');
+  if (monthSel.options.length === 0) {
+    MONTHS.forEach((m,i) => {
+      const o = document.createElement('option');
+      o.value = i+1; o.textContent = m;
+      monthSel.appendChild(o);
+    });
+    monthSel.value = now.getMonth()+1;
+  }
+  if (yearSel.options.length === 0) {
+    for (let y = now.getFullYear(); y >= now.getFullYear()-3; y--) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      yearSel.appendChild(o);
+    }
+    yearSel.value = now.getFullYear();
+  }
+}
+
+async function loadOwnerDashboard() {
+  const month = parseInt(document.getElementById('owner-month').value);
+  const year  = parseInt(document.getElementById('owner-year').value);
+  try {
+    showLoading();
+    const [incRes, expRes, invRes, srRes] = await Promise.all([
+      apiGet('getIncome'), apiGet('getExpenses'), apiGet('getInventory'), apiGet('getStockReceived')
+    ]);
+    const allIncome   = incRes.data || [];
+    const allExpenses = expRes.data || [];
+    const inventory   = invRes.data || [];
+    const stockRec    = srRes.data  || [];
+
+    // Filter for selected month
+    const prefix = `${year}-${String(month).padStart(2,'0')}`;
+    const incMonth = allIncome.filter(r => (r.Date||'').startsWith(prefix));
+    const expMonth = allExpenses.filter(r => (r.Date||'').startsWith(prefix));
+
+    renderOwnerSummary(incMonth, expMonth, inventory, stockRec, allIncome, allExpenses, year, month);
+  } catch(e) {
+    toast('Error loading dashboard: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function renderOwnerSummary(incMonth, expMonth, inventory, stockRec, allIncome, allExpenses, year, month) {
+  const totalIncome  = incMonth.reduce((s,r)=>s+Number(r.TotalIncome||0),0);
+  const totalExpense = expMonth.reduce((s,r)=>s+Number(r.Amount||0),0);
+  const profit       = totalIncome - totalExpense;
+
+  // Profit box
+  const pb = document.getElementById('profitBox');
+  pb.className = 'profit-box ' + (profit >= 0 ? 'profit' : 'loss');
+  pb.innerHTML = `<div class="pl-label">${profit>=0?'Net Profit':'Net Loss'}</div>
+                  <div class="pl-value" id="profitValue">${fmt(Math.abs(profit))}</div>`;
+
+  // Stat grid
+  document.getElementById('ownerStatGrid').innerHTML = `
+    <div class="stat-card green"><div class="stat-label">Total Income</div><div class="stat-value">${fmt(totalIncome)}</div></div>
+    <div class="stat-card red"><div class="stat-label">Total Expenses</div><div class="stat-value">${fmt(totalExpense)}</div></div>
+    <div class="stat-card"><div class="stat-label">Income Days</div><div class="stat-value">${incMonth.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Expense Txns</div><div class="stat-value">${expMonth.length}</div></div>
+  `;
+
+  // Income breakdown
+  const incCols = ['Cash','Card','UPI','Zomato','Swiggy','Others'];
+  const incBreak = {};
+  incCols.forEach(c => { incBreak[c] = incMonth.reduce((s,r)=>s+Number(r[c]||0),0); });
+  document.getElementById('incomeBreakdownBody').innerHTML =
+    incCols.map(c => {
+      const share = totalIncome > 0 ? (incBreak[c]/totalIncome*100).toFixed(1) : 0;
+      return `<tr>
+        <td>${c}</td><td style="font-weight:700;">${fmt(incBreak[c])}</td>
+        <td><div style="display:flex;align-items:center;gap:8px;">
+          <div class="progress-bar-wrap" style="width:80px;"><div class="progress-bar-fill" style="width:${share}%;background:var(--green);"></div></div>
+          <span>${share}%</span>
+        </div></td>
+      </tr>`;
+    }).join('') +
+    `<tr class="total-row"><td><strong>Grand Total</strong></td><td><strong>${fmt(totalIncome)}</strong></td><td></td></tr>`;
+
+  // Expense breakdown
+  const expCats = {};
+  expMonth.forEach(r => { expCats[r.Category] = (expCats[r.Category]||0)+Number(r.Amount||0); });
+  const expSorted = Object.entries(expCats).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('expBreakdownBody').innerHTML =
+    (expSorted.length ? expSorted.map(([cat,amt]) => {
+      const share = totalExpense > 0 ? (amt/totalExpense*100).toFixed(1) : 0;
+      return `<tr>
+        <td><span class="badge badge-gray">${cat}</span></td>
+        <td style="font-weight:700;color:var(--red);">${fmt(amt)}</td>
+        <td><div style="display:flex;align-items:center;gap:8px;">
+          <div class="progress-bar-wrap" style="width:80px;"><div class="progress-bar-fill" style="width:${share}%;background:var(--orange);"></div></div>
+          <span>${share}%</span>
+        </div></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="3" class="table-empty">No expenses this month</td></tr>') +
+    `<tr class="total-row"><td><strong>Total</strong></td><td><strong>${fmt(totalExpense)}</strong></td><td></td></tr>`;
+
+  // 6-month bar chart
+  renderBarChart(allIncome, allExpenses, year, month);
+
+  // Stock value
+  renderStockValue(inventory, stockRec);
+}
+
+function renderBarChart(allIncome, allExpenses, curYear, curMonth) {
+  const months = [];
+  for (let i=5; i>=0; i--) {
+    let m = curMonth - i;
+    let y = curYear;
+    while (m <= 0) { m += 12; y--; }
+    months.push({ year:y, month:m, label: MONTHS[m-1].substring(0,3) });
+  }
+  const maxVal = Math.max(1, ...months.map(({ year:y, month:m }) => {
+    const prefix = `${y}-${String(m).padStart(2,'0')}`;
+    const inc = allIncome.filter(r=>(r.Date||'').startsWith(prefix)).reduce((s,r)=>s+Number(r.TotalIncome||0),0);
+    const exp = allExpenses.filter(r=>(r.Date||'').startsWith(prefix)).reduce((s,r)=>s+Number(r.Amount||0),0);
+    return Math.max(inc, exp);
+  }));
+
+  const chart = document.getElementById('barChart');
+  chart.innerHTML = months.map(({ year:y, month:m, label }) => {
+    const prefix = `${y}-${String(m).padStart(2,'0')}`;
+    const inc = allIncome.filter(r=>(r.Date||'').startsWith(prefix)).reduce((s,r)=>s+Number(r.TotalIncome||0),0);
+    const exp = allExpenses.filter(r=>(r.Date||'').startsWith(prefix)).reduce((s,r)=>s+Number(r.Amount||0),0);
+    const maxH = 130;
+    const iH = Math.round((inc/maxVal)*maxH);
+    const eH = Math.round((exp/maxVal)*maxH);
+    return `<div class="bar-group">
+      <div class="bar-pair">
+        <div class="bar bar-income" style="height:${iH}px;width:18px;" title="Income: ${fmt(inc)}"></div>
+        <div class="bar bar-expense" style="height:${eH}px;width:18px;" title="Expense: ${fmt(exp)}"></div>
+      </div>
+      <div class="bar-label">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStockValue(inventory, stockRec) {
+  // Get last purchase price for each item
+  const lastPrices = {};
+  stockRec.forEach(r => {
+    if (r.ItemID && Number(r.CostPerUnit) > 0) lastPrices[r.ItemID] = Number(r.CostPerUnit);
+  });
+  const tbody = document.getElementById('stockValueBody');
+  if (!inventory.length) { tbody.innerHTML='<tr><td colspan="5" class="table-empty">No inventory data.</td></tr>'; return; }
+  let totalValue = 0;
+  tbody.innerHTML = inventory.map(item => {
+    const price = lastPrices[item.ItemID] || 0;
+    const value = Number(item.CurrentStock) * price;
+    totalValue += value;
+    return `<tr>
+      <td>${item.ItemName}</td>
+      <td>${item.CurrentStock}</td>
+      <td>${item.Unit}</td>
+      <td>${price > 0 ? fmt(price) : '—'}</td>
+      <td style="font-weight:700;">${price > 0 ? fmt(value) : '—'}</td>
+    </tr>`;
+  }).join('') +
+  `<tr class="total-row"><td colspan="4"><strong>Total Estimated Value</strong></td><td><strong>${fmt(totalValue)}</strong></td></tr>`;
+}
+
+// ================================================================
+//  SETTINGS TAB
+// ================================================================
+function saveSheetUrl() {
+  const url = document.getElementById('sheets-url').value.trim();
+  localStorage.setItem(SHEETS_URL_KEY, url);
+  updateDemoBanner();
+  document.getElementById('urlStatus').innerHTML = url
+    ? '<span style="color:var(--green);">✅ URL saved. Google Sheets integration active.</span>'
+    : '<span style="color:var(--text-muted);">Demo Mode active (no URL set).</span>';
+  toast(url ? 'Google Sheets URL saved!' : 'Switched to Demo Mode', 'success');
+}
+
+function clearSheetUrl() {
+  localStorage.removeItem(SHEETS_URL_KEY);
+  document.getElementById('sheets-url').value = '';
+  updateDemoBanner();
+  document.getElementById('urlStatus').innerHTML = '<span style="color:var(--text-muted);">Demo Mode active (no URL set).</span>';
+  toast('Switched to Demo Mode', 'info');
+}
+
+function changePin() {
+  const current = document.getElementById('pin-current').value;
+  const newPin  = document.getElementById('pin-new').value;
+  const confirm = document.getElementById('pin-confirm').value;
+  const stored  = localStorage.getItem(PIN_KEY) || '1234';
+  if (current !== stored) { toast('Current PIN is incorrect', 'error'); return; }
+  if (!/^\d{4,6}$/.test(newPin)) { toast('PIN must be 4-6 digits', 'warning'); return; }
+  if (newPin !== confirm) { toast('New PINs do not match', 'warning'); return; }
+  localStorage.setItem(PIN_KEY, newPin);
+  document.getElementById('pin-current').value = '';
+  document.getElementById('pin-new').value = '';
+  document.getElementById('pin-confirm').value = '';
+  toast('PIN changed successfully!', 'success');
+}
+
+function updateDemoBanner() {
+  const show = isDemo();
+  document.getElementById('demoBanner').classList.toggle('visible', show);
+  document.getElementById('demoBadge').style.display = show ? 'inline-block' : 'none';
+}
+
+function copyAppsScript() {
+  const code = document.getElementById('appsScriptCode').textContent;
+  navigator.clipboard.writeText(code).then(
+    () => toast('Apps Script code copied!', 'success'),
+    () => toast('Copy failed — please select and copy manually', 'warning')
+  );
+}
+
+function copyHeaders(sheetName, headerStr) {
+  navigator.clipboard.writeText(headerStr).then(
+    () => toast(`${sheetName} headers copied! Paste into Row 1 of your sheet.`, 'success'),
+    () => toast('Copy failed — please copy manually', 'warning')
+  );
+}
+
+// ================================================================
+//  APPS SCRIPT CODE
+// ================================================================
+function injectAppsScriptCode() {
+  const code = `// Restaurant Operations Manager - Google Apps Script
+// Deploy as Web App: Execute as Me, Anyone can access
+
+const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+const SHEETS = {
+  INVENTORY:     'Inventory',
+  STOCK_RECEIVED:'StockReceived',
+  STOCK_USAGE:   'StockUsage',
+  EXPENSES:      'Expenses',
+  INCOME:        'Income'
+};
+
+function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    let result;
+    switch(action) {
+      case 'getInventory':     result = getSheet(SHEETS.INVENTORY);     break;
+      case 'getStockReceived': result = getSheet(SHEETS.STOCK_RECEIVED); break;
+      case 'getStockUsage':    result = getSheet(SHEETS.STOCK_USAGE);    break;
+      case 'getExpenses':      result = getSheet(SHEETS.EXPENSES);       break;
+      case 'getIncome':        result = getSheet(SHEETS.INCOME);         break;
+      default: result = { error: 'Unknown action: ' + action };
+    }
+    return jsonResponse(result);
+  } catch(err) {
+    return jsonResponse({ error: err.message });
+  }
+}
+
+function doPost(e) {
+  try {
+    let rawStr = e.postData.contents;
+    if (rawStr.startsWith('data=')) {
+      rawStr = decodeURIComponent(rawStr.slice(5));
+    }
+    const body   = JSON.parse(rawStr);
+    const action = body.action;
+    let result;
+    switch(action) {
+      case 'addStockReceived':  result = addStockReceived(body.row); break;
+      case 'addStockUsage':     result = addStockUsage(body.rows);   break;
+      case 'addExpense':        result = appendRow(SHEETS.EXPENSES, body.row, EXP_COLS); break;
+      case 'addIncome':         result = appendRow(SHEETS.INCOME, body.row, INC_COLS);   break;
+      case 'addInventoryItem':  result = appendRow(SHEETS.INVENTORY, body.row, INV_COLS); break;
+      default: result = { error: 'Unknown action: ' + action };
+    }
+    return jsonResponse(result);
+  } catch(err) {
+    return jsonResponse({ error: err.message });
+  }
+}
+
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ---- GET helpers ----
+function getSheet(sheetName) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return { data: [], error: 'Sheet not found: ' + sheetName };
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return { data: [] };
+  const headers = rows[0];
+  const data = rows.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] instanceof Date
+      ? Utilities.formatDate(row[i], Session.getScriptTimeZone(), 'yyyy-MM-dd')
+      : row[i]);
+    return obj;
+  }).filter(r => Object.values(r).some(v => v !== '' && v !== null && v !== undefined));
+  return { data };
+}
+
+// ---- POST helpers ----
+const SR_COLS  = ['Date','ItemID','ItemName','Quantity','Unit','Source','Supplier','CostPerUnit','TotalCost','RecordedBy'];
+const SU_COLS  = ['Date','ItemID','ItemName','QuantityUsed','Unit','RecordedBy','Notes'];
+const EXP_COLS = ['Date','Category','Description','Amount','PaymentMethod','Vendor','RecordedBy','Notes'];
+const INC_COLS = ['Date','Cash','Card','UPI','Zomato','Swiggy','Others','TotalIncome','RecordedBy','Notes'];
+const INV_COLS = ['ItemID','ItemName','Category','Unit','CurrentStock','MinStockLevel','LastUpdated'];
+
+function appendRow(sheetName, rowObj, columns) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return { error: 'Sheet not found: ' + sheetName };
+  const row = columns.map(c => rowObj[c] !== undefined ? rowObj[c] : '');
+  sheet.appendRow(row);
+  return { success: true };
+}
+
+function addStockReceived(row) {
+  appendRow(SHEETS.STOCK_RECEIVED, row, SR_COLS);
+  updateInventoryStock(row.ItemID, Number(row.Quantity), row.Date);
+  return { success: true };
+}
+
+function addStockUsage(rows) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEETS.STOCK_USAGE);
+  rows.forEach(row => {
+    const r = SU_COLS.map(c => row[c] !== undefined ? row[c] : '');
+    sheet.appendRow(r);
+    updateInventoryStock(row.ItemID, -Number(row.QuantityUsed), row.Date);
+  });
+  return { success: true };
+}
+
+function updateInventoryStock(itemID, delta, date) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEETS.INVENTORY);
+  const data  = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const idCol   = headers.indexOf('ItemID');
+  const stockCol= headers.indexOf('CurrentStock');
+  const dateCol = headers.indexOf('LastUpdated');
+  for (let i=1; i<data.length; i++) {
+    if (String(data[i][idCol]) === String(itemID)) {
+      const newStock = Math.max(0, Number(data[i][stockCol]) + delta);
+      sheet.getRange(i+1, stockCol+1).setValue(newStock);
+      sheet.getRange(i+1, dateCol+1).setValue(date);
+      break;
+    }
+  }
+}`;
+  document.getElementById('appsScriptCode').textContent = code;
+}
+
+// ================================================================
+//  INIT
+// ================================================================
+function init() {
+  // Set default dates
+  const t = today();
+  ['sr-date','exp-date','usage-date','inc-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = t;
+  });
+
+  // Seed demo data
+  seedDemoData();
+
+  // Check mode
+  updateDemoBanner();
+
+  // Load settings URL
+  document.getElementById('sheets-url').value = getSheetUrl();
+
+  // Inject Apps Script code
+  injectAppsScriptCode();
+
+  // Load initial tab
+  loadInventory();
+  loadExpenses();
+  loadIncome();
+
+  // Add first usage row
+  addUsageRow();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
