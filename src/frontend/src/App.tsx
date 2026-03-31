@@ -25,7 +25,7 @@ export default function App() {
         border: "none",
         display: "block",
       }}
-      title="Restro Operations JB Dwarka"
+      title="Restro Operations Manager"
     />
   );
 }
