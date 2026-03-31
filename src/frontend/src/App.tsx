@@ -25,7 +25,7 @@ export default function App() {
         border: "none",
         display: "block",
       }}
-      title="Restaurant Operations Manager"
+      title="Restro Operations JB Dwarka"
     />
   );
 }
