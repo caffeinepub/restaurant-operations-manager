@@ -530,6 +530,23 @@
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- Receipt Viewer Modal -->
+<div id="receiptModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9500;align-items:center;justify-content:center;padding:20px;" onclick="closeReceiptModal()">
+  <div style="max-width:600px;width:100%;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-lg);" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--brown-dark);color:#fff;">
+      <span style="font-weight:700;font-size:0.95rem;">🧾 Receipt</span>
+      <button type="button" onclick="closeReceiptModal()" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;line-height:1;" data-ocid="receipt_modal.close_button">✕</button>
+    </div>
+    <div style="padding:16px;text-align:center;background:#f8f8f8;">
+      <img id="receiptModalImg" src="" alt="Receipt" style="max-width:100%;max-height:70vh;border-radius:var(--radius-sm);border:1px solid var(--border);">
+    </div>
+    <div style="padding:12px 18px;display:flex;gap:10px;justify-content:flex-end;">
+      <a id="receiptDownloadLink" href="#" download="receipt.jpg" class="btn btn-secondary btn-sm" data-ocid="receipt_modal.download_button">⬇️ Download</a>
+      <button type="button" onclick="closeReceiptModal()" class="btn btn-primary btn-sm" data-ocid="receipt_modal.close_confirm_button">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- App Header -->
 <header class="app-header">
   <div class="app-logo">🍽️</div>
@@ -751,10 +768,25 @@
           <label for="exp-notes">Notes</label>
           <textarea id="exp-notes" data-ocid="expense.notes.textarea" placeholder="Optional notes..."></textarea>
         </div>
+        <div class="form-group full">
+          <label>Receipt (optional)</label>
+          <div id="receiptUploadArea" style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center;background:var(--cream);cursor:pointer;" onclick="document.getElementById('exp-receipt').click()">
+            <div id="receiptPreviewArea" style="display:none;margin-bottom:10px;">
+              <img id="receiptPreviewImg" src="" alt="Receipt preview" style="max-height:160px;max-width:100%;border-radius:var(--radius-sm);border:1px solid var(--border);">
+            </div>
+            <div id="receiptPlaceholder">
+              <div style="font-size:1.5rem;">📷</div>
+              <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;">Tap to attach receipt (Camera / Gallery / File)</div>
+            </div>
+            <input type="file" id="exp-receipt" data-ocid="expense.receipt.upload_button" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptUpload(event)">
+          </div>
+          <div id="receiptInfo" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;display:none;"></div>
+          <button type="button" id="receiptClearBtn" class="btn btn-secondary btn-sm" style="display:none;margin-top:6px;" onclick="clearReceipt()" data-ocid="expense.receipt_clear.button">✕ Remove Receipt</button>
+        </div>
       </div>
       <div class="btn-group">
         <button type="submit" class="btn btn-primary" data-ocid="expense.submit_button">💸 Add Expense</button>
-        <button type="button" class="btn btn-secondary" onclick="resetForm('expenseForm')">Reset</button>
+        <button type="button" class="btn btn-secondary" onclick="resetExpenseForm()">Reset</button>
       </div>
     </form>
   </div>
@@ -768,10 +800,10 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Payment</th><th>Vendor</th></tr>
+          <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Payment</th><th>Vendor</th><th>Receipt</th></tr>
         </thead>
         <tbody id="expenseTableBody">
-          <tr><td colspan="6" class="table-empty">Loading expenses...</td></tr>
+          <tr><td colspan="7" class="table-empty">Loading expenses...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1308,7 +1340,7 @@ function demoPost(action, body) {
     }
     case 'addExpense': {
       const rows = demoLoad('Expenses');
-      rows.unshift(body.row);
+      rows.unshift(body.row); // row already has ReceiptDataUrl, ReceiptMimeType, ReceiptName
       demoSave('Expenses', rows);
       return { success: true };
     }
@@ -1541,17 +1573,104 @@ function renderExpenses(data) {
     <div class="stat-card"><div class="stat-label">Transactions</div><div class="stat-value">${recent.length}</div></div>
     ${topCat?`<div class="stat-card"><div class="stat-label">Top Category</div><div class="stat-value orange" style="font-size:1rem;">${topCat[0]}</div></div>`:''}
   `;
-  if (!recent.length) { tbody.innerHTML='<tr><td colspan="6" class="table-empty">No expenses in last 30 days.</td></tr>'; return; }
-  tbody.innerHTML = recent.map(r => `
-    <tr>
+  if (!recent.length) { tbody.innerHTML='<tr><td colspan="7" class="table-empty">No expenses in last 30 days.</td></tr>'; return; }
+  tbody.innerHTML = recent.map((r, idx) => {
+    const receiptUrl = normalizeReceiptUrl(r.ReceiptDataUrl);
+    const receiptCell = receiptUrl
+      ? `<td><button type="button" class="btn btn-secondary btn-sm" data-ocid="expense.view_receipt.button.${idx+1}" onclick="viewReceipt(${JSON.stringify(receiptUrl)})">🧾 View</button></td>`
+      : `<td style="color:var(--text-muted);font-size:0.78rem;">—</td>`;
+    return `<tr>
       <td>${r.Date}</td>
       <td><span class="badge badge-gray">${r.Category||''}</span></td>
       <td>${r.Description||''}</td>
       <td style="font-weight:700;color:var(--red);">${fmt(r.Amount)}</td>
       <td>${r.PaymentMethod||''}</td>
       <td>${r.Vendor||''}</td>
-    </tr>`).join('') +
-    `<tr class="total-row"><td colspan="3"><strong>Total (30 days)</strong></td><td colspan="3"><strong>${fmt(totalAmt)}</strong></td></tr>`;
+      ${receiptCell}
+    </tr>`;
+  }).join('') +
+    `<tr class="total-row"><td colspan="3"><strong>Total (30 days)</strong></td><td colspan="4"><strong>${fmt(totalAmt)}</strong></td></tr>`;
+}
+
+// Fix missing "data:" prefix from stored receipt URLs
+function normalizeReceiptUrl(raw) {
+  if (!raw) return '';
+  const s = String(raw).trim();
+  if (!s) return '';
+  if (s.startsWith('data:')) return s;
+  // Missing "data:" prefix — add it back
+  if (s.startsWith('image/') || s.includes(';base64,')) return 'data:' + s;
+  return s; // might be a regular URL
+}
+
+function viewReceipt(dataUrl) {
+  document.getElementById('receiptModalImg').src = dataUrl;
+  document.getElementById('receiptDownloadLink').href = dataUrl;
+  const modal = document.getElementById('receiptModal');
+  modal.style.display = 'flex';
+}
+
+function closeReceiptModal() {
+  document.getElementById('receiptModal').style.display = 'none';
+  document.getElementById('receiptModalImg').src = '';
+}
+
+// Receipt upload state
+let _receiptDataUrl = '';
+let _receiptMimeType = '';
+let _receiptName = '';
+
+function handleReceiptUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Compress image: resize to max 600px, quality 0.65
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX = 600;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.65);
+      _receiptDataUrl = compressed; // Full valid data URL: "data:image/jpeg;base64,..."
+      _receiptMimeType = 'image/jpeg';
+      _receiptName = file.name;
+      // Show preview
+      document.getElementById('receiptPreviewImg').src = compressed;
+      document.getElementById('receiptPreviewArea').style.display = 'block';
+      document.getElementById('receiptPlaceholder').style.display = 'none';
+      document.getElementById('receiptClearBtn').style.display = 'inline-flex';
+      const kb = Math.round(compressed.length * 0.75 / 1024);
+      document.getElementById('receiptInfo').style.display = 'block';
+      document.getElementById('receiptInfo').textContent = `Receipt attached: ${file.name} (~${kb}KB compressed)`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearReceipt() {
+  _receiptDataUrl = '';
+  _receiptMimeType = '';
+  _receiptName = '';
+  document.getElementById('exp-receipt').value = '';
+  document.getElementById('receiptPreviewArea').style.display = 'none';
+  document.getElementById('receiptPlaceholder').style.display = 'block';
+  document.getElementById('receiptClearBtn').style.display = 'none';
+  document.getElementById('receiptInfo').style.display = 'none';
+  document.getElementById('receiptInfo').textContent = '';
+}
+
+function resetExpenseForm() {
+  document.getElementById('expenseForm').reset();
+  clearReceipt();
 }
 
 async function submitExpense(e) {
@@ -1565,12 +1684,15 @@ async function submitExpense(e) {
     Vendor: document.getElementById('exp-vendor').value,
     RecordedBy: document.getElementById('exp-by').value,
     Notes: document.getElementById('exp-notes').value,
+    ReceiptDataUrl: _receiptDataUrl,   // Full "data:image/jpeg;base64,..." string
+    ReceiptMimeType: _receiptMimeType,
+    ReceiptName: _receiptName,
   };
   try {
     showLoading();
     await apiPost('addExpense', { row });
     toast('Expense recorded successfully!', 'success');
-    document.getElementById('expenseForm').reset();
+    resetExpenseForm();
     loadExpenses();
   } catch(err) {
     toast('Error: ' + err.message, 'error');
@@ -2034,7 +2156,7 @@ function getSheet(sheetName) {
 // ---- POST helpers ----
 const SR_COLS  = ['Date','ItemID','ItemName','Quantity','Unit','Source','Supplier','CostPerUnit','TotalCost','RecordedBy'];
 const SU_COLS  = ['Date','ItemID','ItemName','QuantityUsed','Unit','RecordedBy','Notes'];
-const EXP_COLS = ['Date','Category','Description','Amount','PaymentMethod','Vendor','RecordedBy','Notes'];
+const EXP_COLS = ['Date','Category','Description','Amount','PaymentMethod','Vendor','RecordedBy','Notes','ReceiptDataUrl','ReceiptMimeType','ReceiptName'];
 const INC_COLS = ['Date','Cash','Card','UPI','Zomato','Swiggy','Others','TotalIncome','RecordedBy','Notes'];
 const INV_COLS = ['ItemID','ItemName','Category','Unit','CurrentStock','MinStockLevel','LastUpdated'];
 
